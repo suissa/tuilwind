@@ -4,7 +4,7 @@ SPDX-FileCopyrightText: 2026 Alexandre Gomes Gaigalas <alganet@gmail.com>
 SPDX-License-Identifier: ISC
 -->
 
-# tui.sh
+# tuilwind
 
 TUI toolkit written in pure portable shell script. No compilation, no subprocesses, requires only `stty` (almost universal).
 
