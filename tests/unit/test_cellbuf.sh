@@ -44,11 +44,11 @@ tuish_cellbuf_get frame 2 2
 assert_eq "$TUISH_CELL_GLYPH" C "lower layer remains visible through transparent cells"
 tuish_cellbuf_get frame 3 3
 assert_eq "$TUISH_CELL_GLYPH" O "overlay-only cell copied"
+tuish_cellbuf_init independent 2 2
 tuish_cellbuf_fill independent F 42 17
- tuish_cellbuf_get independent 2 2
+tuish_cellbuf_get independent 2 2
 assert_eq "$TUISH_CELL_GLYPH" F "fill writes every cell"
 assert_eq "$TUISH_CELL_BG" 17 "fill preserves background"
-tuish_cellbuf_init independent 2 2
 tuish_cellbuf_set independent 1 1 I
 tuish_cellbuf_get base 1 1
 assert_eq "$TUISH_CELL_GLYPH" A "named buffers remain independent"
