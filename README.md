@@ -87,6 +87,8 @@ is optional -- pick what you need:
 | `hl.sh`       | Generic code highlighting (standalone)          |
 | `md.sh`       | Markdown to a record stream (standalone)        |
 | `host.sh`     | Hosting several live apps in one loop           |
+| `actor.sh`    | Actor lifecycle, messages and component state   |
+| `monitor.sh`  | Best-effort host/system metrics                  |
 
 ## Examples
 
@@ -97,6 +99,7 @@ bash examples/game.sh         # Emoji platformer (dirty-sprite renderer)
 bash examples/boxes.sh        # Box drawing styles and composable layouts
 bash examples/canvas_demo.sh  # Two independently scrollable clipped panels
 bash examples/debug.sh        # Live event inspector
+bash examples/agent_dashboard.sh # Live host metrics and managed agent workers
 bash examples/width.sh        # Unicode width ACID test
 bash examples/slow_menu.sh    # Streaming output in a grow viewport
 ```
@@ -114,6 +117,7 @@ editor, and what the website does with all of them.
 - [HID (hid.sh)](docs/hid.md) -- complete event name reference
 - [Viewport Modes (viewport.sh)](docs/viewport.md) -- fullscreen, fixed, grow
 - [Hosting and Contexts](docs/hosting.md) -- one app inside another, cooperative multi-app loops
+- [Actor Runtime](docs/actors.md) -- Actor API, component catalog and live dashboard
 - [Box Drawing (draw.sh)](docs/draw.md) -- styles, junctions, clipping
 - [String Utilities (str.sh)](docs/str.md) -- Unicode width, substrings
 - [Line Buffer (buf.sh)](docs/buf.md) -- indexed line storage
