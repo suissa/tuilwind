@@ -78,6 +78,22 @@ _tuish_tree_status=0
 tuish_tree_resize files 0 || _tuish_tree_status=$?
 assert_eq "$_tuish_tree_status" 2 "zero viewport height is rejected"
 tuish_actor_destroy files
+
+# Exercise the explicit depth guard without external commands.
+tuish_tree_create deep Root 4
+_deep_parent=deep
+_deep_i=1
+while test "$_deep_i" -le 64
+do
+  _deep_node="level_$_deep_i"
+  tuish_tree_add_node deep "$_deep_node" "$_deep_parent" "$_deep_node"
+  _deep_parent=$_deep_node
+  _deep_i=$((_deep_i + 1))
+done
+_deep_status=0
+tuish_tree_add_node deep level_65 "$_deep_parent" too_deep || _deep_status=$?
+assert_eq "$_deep_status" 2 "nesting beyond the configured depth is rejected"
+tuish_actor_destroy deep
 tuish_actor_count
 assert_eq "$TUISH_ACTOR_COUNT" 0 "tree Actor cleanup removes registry data"
 test_summary
