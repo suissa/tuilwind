@@ -260,7 +260,7 @@ tuish_tree_expand () {
 	_tuish_tree_has_node "$_tree" "$_node" || return 4
 	tuish_actor_set "$_tree" "node_expanded_$_node" 1 || return
 	_tuish_tree_rebuild_visible "$_tree" || return
-	__tuish_actor_emit "$_tree" expand "$_node"
+	_tuish_actor_emit "$_tree" expand "$_node"
 }
 
 tuish_tree_collapse () {
@@ -269,5 +269,5 @@ tuish_tree_collapse () {
 	_tuish_tree_has_node "$_tree" "$_node" || return 4
 	tuish_actor_set "$_tree" "node_expanded_$_node" 0 || return
 	_tuish_tree_rebuild_visible "$_tree" || return
-	__tuish_actor_emit "$_tree" collapse "$_node"
+	_tuish_actor_emit "$_tree" collapse "$_node"
 }
