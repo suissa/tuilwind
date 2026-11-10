@@ -63,6 +63,7 @@ tuish_diff_render () {
   local _dr_old_present _dr_new_present _dr_old_glyph _dr_old_fg _dr_old_bg _dr_old_attrs
   local _dr_arg_force _dr_clear_w _dr_clear_h _dr_changed
   local _dr_new_glyph _dr_new_fg _dr_new_bg _dr_new_attrs _dr_old_width _dr_new_width _dr_pad
+  _tuish_cellbuf_name_ok "$_dr_previous" && _tuish_cellbuf_name_ok "$_dr_current" || return 2
   test "$_dr_previous" != "$_dr_current" || return 2
   test -z "$_dr_arg" || test "$_dr_arg" = force || return 2
   tuish_cellbuf_size "$_dr_current" || return 1
