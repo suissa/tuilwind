@@ -73,8 +73,8 @@ tuish_cellbuf_set () {
   _tuish_cellbuf_name_ok "$_cb_name" && _tuish_cellbuf_uint "$_cb_row" && _tuish_cellbuf_uint "$_cb_col" || return 2
   test -n "$_cb_glyph" || return 2
   _tuish_cellbuf_value_ok "$_cb_glyph" || return 2
-  while test $# -gt 4; do
-    shift 4
+  shift 4
+  while test $# -gt 0; do
     _cb_opt=$1
     case "$_cb_opt" in
       fg=*) _cb_fg=${_cb_opt#*=};;
@@ -82,9 +82,13 @@ tuish_cellbuf_set () {
       attrs=*) _cb_attrs=${_cb_opt#*=};;
       *) return 2;;
     esac
+    shift
   done
   _tuish_cellbuf_value_ok "$_cb_fg" && _tuish_cellbuf_value_ok "$_cb_bg" && _tuish_cellbuf_value_ok "$_cb_attrs" || return 2
-  case "$_cb_fg:$_cb_bg" in *[!0-9:]*) test -z "$_cb_fg" -o -z "$_cb_bg" || return 2;; esac
+  case "$_cb_fg" in ''|*[!0-9]*) ;; *) test "$_cb_fg" -le 255 || return 2;; esac
+  case "$_cb_bg" in ''|*[!0-9]*) ;; *) test "$_cb_bg" -le 255 || return 2;; esac
+  case "$_cb_fg" in *[!0-9]*) test -z "$_cb_fg" || return 2;; esac
+  case "$_cb_bg" in *[!0-9]*) test -z "$_cb_bg" || return 2;; esac
   tuish_cellbuf_size "$_cb_name" || return 1
   test "$_cb_row" -ge 1 && test "$_cb_row" -le "$TUISH_CELLBUF_HEIGHT" && test "$_cb_col" -ge 1 && test "$_cb_col" -le "$TUISH_CELLBUF_WIDTH" || return 2
   while IFS= read -r _cb_line; do
