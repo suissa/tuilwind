@@ -75,12 +75,17 @@ tuish_table_set_width () {
 # Set a complete row using one stable key and one value per column:
 # tuish_table_set_row ID ROW STABLE_KEY CELL_1 ... CELL_N
 tuish_table_set_row () {
-	local _id=$1 _row=$2 _key=$3 _cols _col=1 _value _selected
+	local _id=$1 _row=$2 _key=$3 _cols _col=1 _value _selected _arg_index=0
 	_tuish_table_uint "$_row" || return 2
 	_tuish_actor_valid_value "$_key" || return 2
 	tuish_actor_get "$_id" column_count || return; _cols=$TUISH_ACTOR_VALUE
 	test "$#" -eq $((_cols + 3)) || return 2
 	_tuish_table_bounds "$_id" "$_row" 1 || return
+	for _value do
+		_arg_index=$((_arg_index + 1))
+		test "$_arg_index" -le 3 && continue
+		_tuish_actor_valid_value "$_value" || return 2
+	done
 	tuish_actor_get "$_id" selected_key || :; _selected=$TUISH_ACTOR_VALUE
 	tuish_actor_set "$_id" "row_key_$_row" "$_key" || return
 	shift 3
