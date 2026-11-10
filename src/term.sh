@@ -136,7 +136,7 @@ _tuish_clip_avail ()
 # the same run, which is the point — see the note above the pad below.
 tuish_text ()
 {
-	local _tt_row=$1 _tt_col=$2 _tt_text="$3" _tt_maxw=-1 _tt_fg=-1 _tt_bg=-1 _tt_esc=0 _tt_fw=-1
+	local _tt_row=$1 _tt_col=$2 _tt_text="$3" _tt_maxw=-1 _tt_fg=-1 _tt_bg=-1 _tt_attrs='' _tt_esc=0 _tt_fw=-1
 	shift 3
 	while test $# -gt 0
 	do
@@ -145,6 +145,7 @@ tuish_text ()
 			width=*)    _tt_fw="${1#*=}";;
 			fg=*)       _tt_fg="${1#*=}";;
 			bg=*)       _tt_bg="${1#*=}";;
+			attrs=*)     _tt_attrs="${1#*=}";;
 		esac
 		shift
 	done
@@ -249,11 +250,12 @@ tuish_text ()
 
 	if tuish_vmove $_tt_row $_tt_col
 	then
+		test -n "$_tt_attrs" && tuish_sgr "$_tt_attrs"
 		test "$_tt_fg" != -1 && { _tuish_color_params fg "$_tt_fg"; tuish_sgr "$_tuish_cparams"; }
 		test "$_tt_bg" != -1 && { _tuish_color_params bg "$_tt_bg"; tuish_sgr "$_tuish_cparams"; }
 		tuish_print "$_tt_text"
 	fi
-	if test "$_tt_fg" != -1 || test "$_tt_bg" != -1 || test $_tt_esc -eq 1
+	if test -n "$_tt_attrs" || test "$_tt_fg" != -1 || test "$_tt_bg" != -1 || test $_tt_esc -eq 1
 	then tuish_sgr_reset; fi
 }
 tuish_print_at ()       { tuish_text "$1" "$2" "$3"; }
