@@ -23,7 +23,8 @@ tuish_progress_set () {
 	case "$_percent" in -[0-9]*) _tuish_actor_is_uint "${_percent#-}" || return 2;; *-*) return 2;; esac
 	test "$_percent" -lt 0 && _percent=0
 	test "$_percent" -gt 100 && _percent=100
-	tuish_actor_action "$_id" set "$_percent"
+	tuish_actor_action "$_id" set "$_percent" || return
+	tuish_actor_send "$_id" progress_change "$_percent"
 }
 
 tuish_progress_resize () {
@@ -47,7 +48,8 @@ tuish_progress_tick () {
 }
 
 tuish_progress_render () {
-	local _id=$1 _label _width _percent _filled _empty _i _color=''
+	local _id=$1 _label _width _percent _filled _empty _i _color='' _frame=0 _marker=-1
+	tuish_actor_send "$_id" render || return
 	tuish_actor_get "$_id" label || :; _label=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" width || return; _width=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" percent || :; _percent=${TUISH_ACTOR_VALUE:-0}
@@ -55,6 +57,9 @@ tuish_progress_render () {
 	_tuish_actor_is_uint "$_percent" && test "$_percent" -le 100 || return 2
 	_filled=$(( _width * _percent / 100 ))
 	_empty=$(( _width - _filled ))
+	tuish_actor_get "$_id" animation_state || :; _frame=${TUISH_ACTOR_VALUE:-0}
+	_tuish_actor_is_uint "$_frame" || return 2
+	if test "$_empty" -gt 0; then _marker=$(( _filled + (_frame % _empty) )); fi
 	tuish_actor_get "$_id" start_color || :; _color=$TUISH_ACTOR_VALUE
 	if test "$_percent" -eq 100
 	then tuish_actor_get "$_id" end_color || :; _color=$TUISH_ACTOR_VALUE; fi
@@ -66,7 +71,11 @@ tuish_progress_render () {
 	_i=0
 	while test "$_i" -lt "$_filled"; do printf '#'; _i=$((_i + 1)); done
 	_i=0
-	while test "$_i" -lt "$_empty"; do printf '-'; _i=$((_i + 1)); done
+	while test "$_i" -lt "$_empty"
+	do
+		if test "$_marker" -eq $((_filled + _i)); then printf '>'; else printf '-'; fi
+		_i=$((_i + 1))
+	done
 	printf ']'
 	if test -n "$_color"; then printf '\033[0m'; fi
 	printf ' %s%%' "$_percent"
