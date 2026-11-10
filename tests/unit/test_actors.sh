@@ -25,8 +25,6 @@ do
 	tuish_actor_step "$id" next
 	tuish_actor_get "$id" selected_index
 	assert_eq "$TUISH_ACTOR_VALUE" 1 "$kind next selection"
-	tuish_actor_destroy "$id"
-	case " $TUISH_ACTORS " in *" $id "*) assert_eq present absent "$kind destroyed";; *) assert_eq absent absent "$kind destroyed";; esac
 	case "$kind" in
 		progress) tuish_actor_action "$id" set 42; tuish_actor_get "$id" percent; assert_eq "$TUISH_ACTOR_VALUE" 42 "progress updates percentage";;
 		slide-motion) tuish_actor_action "$id" seek 12; tuish_actor_get "$id" current_frame; assert_eq "$TUISH_ACTOR_VALUE" 12 "slide motion seeks frame";;
@@ -48,6 +46,8 @@ do
 		bics-plugin) tuish_actor_action "$id" register; tuish_actor_get "$id" plugin_state; assert_eq "$TUISH_ACTOR_VALUE" registered "BICS plugin registers";;
 		bics-plugin-cli) tuish_actor_action "$id" validate; tuish_actor_get "$id" cli_action; assert_eq "$TUISH_ACTOR_VALUE" validate "BICS plugin CLI action";;
 	esac
+	tuish_actor_destroy "$id"
+	case " $TUISH_ACTORS " in *" $id "*) assert_eq present absent "$kind destroyed";; *) assert_eq absent absent "$kind destroyed";; esac
 done
 
 tuish_actor_create demo list
