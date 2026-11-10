@@ -61,6 +61,7 @@ tuish_diff_render () {
   local _dr_previous=$1 _dr_current=$2 _dr_arg=${3:-}
   local _dr_old_w=0 _dr_old_h=0 _dr_w _dr_h _dr_row _dr_col
   local _dr_old_present _dr_new_present _dr_old_glyph _dr_old_fg _dr_old_bg _dr_old_attrs
+  local _dr_arg_force _dr_clear_w _dr_clear_h _dr_changed
   local _dr_new_glyph _dr_new_fg _dr_new_bg _dr_new_attrs _dr_old_width _dr_new_width _dr_pad
   test "$_dr_previous" != "$_dr_current" || return 2
   test -z "$_dr_arg" || test "$_dr_arg" = force || return 2
