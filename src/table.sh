@@ -239,7 +239,7 @@ tuish_table_render () {
 	tuish_actor_get "$_id" empty_label || :; _empty=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" padding || :; _pad=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" border_style || :; _border=$TUISH_ACTOR_VALUE
-	test "$_pad" -ge 0 && test "$_pad" -le 4 || _pad=1
+	_tuish_table_uint "$_pad" && test "$_pad" -le 4 || _pad=1
 	case "$_border" in
 		none) _border='';;
 		double) _border='║';;
