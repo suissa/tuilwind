@@ -21,6 +21,6 @@ Tokens: `bg`, `surface`, `surface_alt`, `text`, `muted`, `primary`, `secondary`,
 - `tuish_ui_progress ROW COL WIDTH PERCENT [LABEL]`
 - `tuish_ui_section ROW COL TEXT [tone=primary|muted]`
 
-All primitives delegate positioning, clipping and border rendering to existing `draw.sh` and `term.sh` APIs. The progress bar uses Unicode block glyphs; applications targeting ASCII-only terminals can keep using the lower-level drawing primitives or select a future ASCII variant.
+All primitives delegate positioning, clipping and border rendering to existing `draw.sh` and `term.sh` APIs. The progress bar automatically uses Unicode blocks when the draw backend is Unicode and `#` / `-` when the backend is ASCII.
 
 Run `sh examples/futuristic_dashboard.sh` to see the visual language in a dashboard composition.
