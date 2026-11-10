@@ -48,8 +48,13 @@ tuish_ui_progress () {
   _ui_empty=$((_ui_inner - _ui_done))
   _ui_bar=''
   _ui_i=0
-  while test "$_ui_i" -lt "$_ui_done"; do _ui_bar="${_ui_bar}█"; _ui_i=$((_ui_i + 1)); done
-  while test "$_ui_i" -lt "$_ui_inner"; do _ui_bar="${_ui_bar}░"; _ui_i=$((_ui_i + 1)); done
+  if test "${TUISH_DRAW_BACKEND:-ascii}" = unicode; then
+    while test "$_ui_i" -lt "$_ui_done"; do _ui_bar="${_ui_bar}█"; _ui_i=$((_ui_i + 1)); done
+    while test "$_ui_i" -lt "$_ui_inner"; do _ui_bar="${_ui_bar}░"; _ui_i=$((_ui_i + 1)); done
+  else
+    while test "$_ui_i" -lt "$_ui_done"; do _ui_bar="${_ui_bar}#"; _ui_i=$((_ui_i + 1)); done
+    while test "$_ui_i" -lt "$_ui_inner"; do _ui_bar="${_ui_bar}-"; _ui_i=$((_ui_i + 1)); done
+  fi
   tuish_draw_text "$_ui_r" "$_ui_c" "$_ui_bar" fg="$TUISH_THEME_PRIMARY" maxwidth="$_ui_inner"
   if test -n "$_ui_label"; then tuish_draw_text "$_ui_r" "$((_ui_c + _ui_inner + 1))" "$_ui_label"; fi
 }
