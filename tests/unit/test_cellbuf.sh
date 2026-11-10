@@ -15,7 +15,7 @@ printf 'Unit tests: cell buffer and compositor\n'
 tuish_cellbuf_init base 8 4
 tuish_cellbuf_init overlay 8 4
 tuish_cellbuf_init frame 8 4
-tuish_cellbuf_set base 1 1 A fg=51
+tuish_cellbuf_set base 1 1 A fg=51 attrs=1\;4
 tuish_cellbuf_set base 2 2 B bg=17
 tuish_cellbuf_get base 1 1
 assert_eq "$TUISH_CELL_GLYPH" A "cell glyph read"
@@ -31,6 +31,8 @@ tuish_cellbuf_set base 5 1 X && _rc=0 || _rc=$?
 assert_eq "$_rc" 2 "out-of-bounds write rejected"
 tuish_cellbuf_set base 1 2 'bad|glyph' && _rc=0 || _rc=$?
 assert_eq "$_rc" 2 "record separator rejected"
+tuish_cellbuf_set base 1 2 BAD 'attrs=1;4m' && _rc=0 || _rc=$?
+assert_eq "$_rc" 2 "unsafe SGR attribute syntax rejected"
 tuish_cellbuf_set overlay 1 1 Z fg=203 bg=17
 tuish_cellbuf_set overlay 3 3 O
 tuish_compositor_add base 0
@@ -65,10 +67,14 @@ tuish_compositor_remove overlay
 tuish_compositor_compose frame
 tuish_cellbuf_get frame 1 1
 assert_eq "$TUISH_CELL_GLYPH" A "removing a layer reveals lower layer"
-_render_capture=''
+_render_capture='' _sgr_capture='' _sgr_reset_count=0
 tuish_draw_text () { _render_capture="${_render_capture}R$1,$2,$3|"; }
+tuish_sgr () { _sgr_capture=$1; }
+tuish_sgr_reset () { _sgr_reset_count=$((_sgr_reset_count + 1)); }
 tuish_compositor_render frame
 assert_contains "$_render_capture" 'R1,1,A' "renderer emits composed cell"
+assert_eq "$_sgr_capture" '1;4' "renderer applies stored bold and underline attributes"
+assert_eq "$_sgr_reset_count" 1 "renderer resets attributes after styled cell"
 assert_contains "$_render_capture" 'R2,2,C' "renderer emits remaining cells"
 tuish_cellbuf_clear base
 tuish_cellbuf_get base 1 1 && _rc=0 || _rc=$?
