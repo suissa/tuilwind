@@ -13,6 +13,8 @@ _tuish_actor_records=''
 
 _tuish_actor_valid_name () { case "$1" in ''|*[!A-Za-z0-9_-]*) return 1;; esac; }
 _tuish_actor_valid_key () { case "$1" in ''|*[!A-Za-z0-9_]*) return 1;; esac; }
+_tuish_actor_is_uint () { case "$1" in ''|*[!0-9]*) return 1;; esac; }
+_tuish_actor_exists () { case " $TUISH_ACTORS " in *" $1 "*) return 0;; *) return 1;; esac; }
 _tuish_actor_valid_value () { case "$1" in *'|'*|*'
 '*) return 1;; esac; }
 
@@ -62,7 +64,11 @@ tuish_actor_create () {
 	local _id=$1 _kind=$2 _parent=${3:-}
 	_tuish_actor_valid_name "$_id" && tuish_actor_supported "$_kind" || return 2
 	case " $TUISH_ACTORS " in *" $_id "*) return 3;; esac
-	_tuish_actor_valid_name "$_parent" || test -z "$_parent" || return 2
+	if test -n "$_parent"; then
+		_tuish_actor_valid_name "$_parent" || return 2
+		_tuish_actor_exists "$_parent" || return 4
+		test "$_parent" != "$_id" || return 2
+	fi
 	TUISH_ACTORS="${TUISH_ACTORS:+$TUISH_ACTORS }$_id"
 	_tuish_actor_put "$_id" kind "$_kind" || return
 	_tuish_actor_put "$_id" parent "$_parent" || return
@@ -75,7 +81,7 @@ tuish_actor_create () {
 tuish_actor_set () {
 	local _id=$1 _key=$2 _value=$3
 	_tuish_actor_valid_name "$_id" && _tuish_actor_valid_key "$_key" || return 2
-	case " $TUISH_ACTORS " in *" $_id "*) ;; *) return 1;; esac
+	_tuish_actor_exists "$_id" || return 1
 	_tuish_actor_put "$_id" "$_key" "$_value"
 }
 
@@ -145,16 +151,18 @@ tuish_actor_step () {
 	local _id=$1 _action=$2 _value=${3:-0} _index=0 _count=0
 	tuish_actor_get "$_id" selected_index || return
 	_index=${TUISH_ACTOR_VALUE:-0}
+	_tuish_actor_is_uint "$_index" || return 2
 	tuish_actor_get "$_id" item_count || :
 	_count=${TUISH_ACTOR_VALUE:-0}
+	_tuish_actor_is_uint "$_count" || return 2
 	case "$_action" in
 		next) test "$_count" -gt 0 && _index=$(( (_index + 1) % _count ));;
 		previous) test "$_count" -gt 0 && _index=$(( (_index + _count - 1) % _count ));;
-		select) _index=$_value; test "$_index" -ge 0 && test "$_index" -lt "$_count" || return 2;;
+		select) _tuish_actor_is_uint "$_value" || return 2; _index=$_value; test "$_index" -lt "$_count" || return 2;;
 		set-value) tuish_actor_set "$_id" value "$_value";;
-		progress) test "$_value" -ge 0 && test "$_value" -le 100 || return 2; tuish_actor_set "$_id" percent "$_value";;
+		progress) _tuish_actor_is_uint "$_value" && test "$_value" -le 100 || return 2; tuish_actor_set "$_id" percent "$_value";;
 		toggle) tuish_actor_get "$_id" expanded || :; if test "$TUISH_ACTOR_VALUE" = 1; then _value=0; else _value=1; fi; tuish_actor_set "$_id" expanded "$_value";;
-		scroll) tuish_actor_get "$_id" offset || :; _index=${TUISH_ACTOR_VALUE:-0}; _index=$((_index + _value)); test "$_index" -ge 0 || _index=0; tuish_actor_set "$_id" offset "$_index";;
+		scroll) case "$_value" in -*) _tuish_actor_is_uint "${_value#-}" || return 2;; *) _tuish_actor_is_uint "$_value" || return 2;; esac; tuish_actor_get "$_id" offset || :; _index=${TUISH_ACTOR_VALUE:-0}; _tuish_actor_is_uint "$_index" || return 2; _index=$((_index + _value)); test "$_index" -ge 0 || _index=0; tuish_actor_set "$_id" offset "$_index";;
 		confirm) tuish_actor_set "$_id" result confirmed;;
 		cancel) tuish_actor_set "$_id" result cancelled;;
 		*) return 2;;
@@ -184,10 +192,10 @@ tuish_actor_action () {
 	_kind=$TUISH_ACTOR_KIND
 	case "$_kind" in
 		progress) test "$_action" = set || return 2; tuish_actor_step "$_id" progress "$_value";;
-		slide-motion) test "$_action" = seek && test "$_value" -ge 0 || return 2; tuish_actor_set "$_id" current_frame "$_value";;
+		slide-motion) test "$_action" = seek && _tuish_actor_is_uint "$_value" || return 2; tuish_actor_set "$_id" current_frame "$_value";;
 		table|list|tabs|command-launcher) case "$_action" in select) tuish_actor_step "$_id" select "$_value";; filter) tuish_actor_set "$_id" filter "$_value";; *) return 2;; esac;;
 		tree) test "$_action" = toggle || return 2; tuish_actor_step "$_id" toggle;;
-		split-view) test "$_action" = ratio && test "$_value" -ge 1 && test "$_value" -le 99 || return 2; tuish_actor_set "$_id" split_ratio "$_value";;
+		split-view) test "$_action" = ratio && _tuish_actor_is_uint "$_value" && test "$_value" -ge 1 && test "$_value" -le 99 || return 2; tuish_actor_set "$_id" split_ratio "$_value";;
 		text-input|text-area|code-editor) case "$_action" in input|replace) tuish_actor_set "$_id" value "$_value";; *) return 2;; esac;;
 		viewport) test "$_action" = scroll || return 2; tuish_actor_step "$_id" scroll "$_value";;
 		spinner) test "$_action" = tick || return 2; tuish_actor_get "$_id" frame_index || :; _value=$(( ${TUISH_ACTOR_VALUE:-0} + 1 )); tuish_actor_set "$_id" frame_index "$_value";;
@@ -198,7 +206,7 @@ tuish_actor_action () {
 		cursor) test "$_action" = move || return 2; tuish_actor_set "$_id" position "$_value";;
 		confirm-dialog) case "$_action" in confirm|cancel) tuish_actor_step "$_id" "$_action";; *) return 2;; esac;;
 		file-picker) case "$_action" in navigate) tuish_actor_set "$_id" path "$_value";; filter) tuish_actor_set "$_id" filter "$_value";; *) return 2;; esac;;
-		timer) test "$_action" = tick && test "$_value" -ge 0 || return 2; tuish_actor_get "$_id" remaining_ms || :; _value=$(( ${TUISH_ACTOR_VALUE:-0} - _value )); test "$_value" -ge 0 || _value=0; tuish_actor_set "$_id" remaining_ms "$_value";;
+		timer) test "$_action" = tick && _tuish_actor_is_uint "$_value" || return 2; tuish_actor_get "$_id" remaining_ms || :; _value=$(( ${TUISH_ACTOR_VALUE:-0} - _value )); test "$_value" -ge 0 || _value=0; tuish_actor_set "$_id" remaining_ms "$_value";;
 		paginator) case "$_action" in next|previous) tuish_actor_get "$_id" page || :; _value=${TUISH_ACTOR_VALUE:-0}; test "$_action" = next && _value=$((_value + 1)); test "$_action" = previous && _value=$((_value - 1)); test "$_value" -ge 0 || _value=0; tuish_actor_set "$_id" page "$_value";; *) return 2;; esac;;
 		markdown) test "$_action" = source || return 2; tuish_actor_set "$_id" source "$_value";;
 		bics-plugin) case "$_action" in register) tuish_actor_set "$_id" plugin_state registered;; reload) tuish_actor_set "$_id" plugin_state reloaded;; *) return 2;; esac;;
