@@ -245,3 +245,21 @@ tuish_tree_render () {
 	printf '%s' "$_out"
 	tuish_actor_emit "$_tree" render "$_selected"
 }
+
+tuish_tree_expand () {
+	local _tree=$1 _node=${2:-}
+	if test -z "$_node"; then tuish_actor_get "$_tree" selected_id || return; _node=$TUISH_ACTOR_VALUE; fi
+	_tuish_tree_has_node "$_tree" "$_node" || return 4
+	tuish_actor_set "$_tree" "node_expanded_$_node" 1 || return
+	_tuish_tree_rebuild_visible "$_tree" || return
+	_tuish_actor_emit "$_tree" expand "$_node"
+}
+
+tuish_tree_collapse () {
+	local _tree=$1 _node=${2:-}
+	if test -z "$_node"; then tuish_actor_get "$_tree" selected_id || return; _node=$TUISH_ACTOR_VALUE; fi
+	_tuish_tree_has_node "$_tree" "$_node" || return 4
+	tuish_actor_set "$_tree" "node_expanded_$_node" 0 || return
+	_tuish_tree_rebuild_visible "$_tree" || return
+	_tuish_actor_emit "$_tree" collapse "$_node"
+}
