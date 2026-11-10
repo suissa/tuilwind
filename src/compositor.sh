@@ -89,6 +89,9 @@ tuish_compositor_render () {
     _co_glyph=${_co_line%%|*}; _co_line=${_co_line#*|}
     _co_fg=${_co_line%%|*}; _co_line=${_co_line#*|}
     _co_bg=${_co_line%%|*}; _co_attrs=${_co_line#*|}
+    # attrs stores a validated SGR parameter list (for example, 1;4 for bold + underline).
+    # Apply it before text placement so term.sh can combine it with foreground/background.
+    if test -n "$_co_attrs"; then tuish_sgr "$_co_attrs"; fi
     if test -n "$_co_fg" && test -n "$_co_bg"; then
       tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" fg="$_co_fg" bg="$_co_bg"
     elif test -n "$_co_fg"; then
@@ -98,6 +101,7 @@ tuish_compositor_render () {
     else
       tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph"
     fi
+    if test -n "$_co_attrs"; then tuish_sgr_reset; fi
   done <<EOF
 $TUISH_CELLBUF_CELLS
 EOF
