@@ -21,7 +21,7 @@ The runtime recognizes the components tracked by the project issues: progress, s
 
 This is deliberately a foundation, not a claim that all 25 component types have bespoke rendering implementations. Component-specific rendering and input adapters can be added incrementally without changing the Actor contract.
 
-The concrete component adapters are [Progress](progress.md), [SlideMotion](slide-motion.md), [Interactive Table](table.md) and [Expandable Tree](tree.md). The table adapter adds keyed row selection and bounded rendering; the tree adapter adds stable node IDs, cycle-safe parent links, expansion, keyboard navigation and viewport clipping.
+The concrete component adapters are [Progress](progress.md), [SlideMotion](slide-motion.md), [Interactive Table](table.md), [Expandable Tree](tree.md) and [SplitView](split-view.md). The table adapter adds keyed row selection and bounded rendering; the tree adapter adds stable node IDs, cycle-safe parent links, expansion, keyboard navigation and viewport clipping; SplitView calculates constrained two-pane geometry, focus, pointer hit-testing and child-exit layout recovery.
 
 ## Live dashboard
 
