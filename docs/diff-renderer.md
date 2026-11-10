@@ -25,4 +25,4 @@ tuish_diff_render previous frame
 printf 'Redrawn cells: %s\n' "$TUISH_DIFF_CHANGED_CELLS"
 ```
 
-The renderer treats each stored glyph as a drawable text run anchored at its row and column. The width calculation uses `str.sh` when loaded; the fallback counts shell characters and is intended for simple ASCII-only environments.
+The renderer treats each stored glyph as a drawable text run anchored at its row and column; text runs in a frame should not overlap. The width calculation uses `str.sh` when loaded; the fallback counts shell characters and is intended for simple ASCII-only environments.
