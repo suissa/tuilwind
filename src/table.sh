@@ -184,7 +184,7 @@ tuish_table_move () {
 }
 
 tuish_table_scroll () {
-	local _id=$1 _delta=$2 _offset _visible _rows _next _max
+	local _id=$1 _delta=$2 _offset _visible _rows _next _max _cursor _target _key
 	case "$_delta" in -*) _tuish_table_uint "${_delta#-}" || return 2;; *) _tuish_table_uint "$_delta" || return 2;; esac
 	tuish_actor_get "$_id" viewport_offset || return; _offset=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" visible_rows || return; _visible=$TUISH_ACTOR_VALUE
@@ -195,6 +195,19 @@ tuish_table_scroll () {
 	test "$_next" -le "$_max" || _next=$_max
 	test "$_next" -ge 1 || _next=1
 	tuish_actor_set "$_id" viewport_offset "$_next" || return
+	tuish_actor_get "$_id" cursor || return; _cursor=$TUISH_ACTOR_VALUE
+	if test "$_rows" -gt 0; then
+		_target=$_cursor
+		test "$_target" -ge "$_next" || _target=$_next
+		test "$_target" -lt $((_next + _visible)) || _target=$((_next + _visible - 1))
+		test "$_target" -le "$_rows" || _target=$_rows
+		if test "$_target" != "$_cursor"; then
+			tuish_actor_get "$_id" "row_key_$_target" || :; _key=$TUISH_ACTOR_VALUE
+			tuish_actor_set "$_id" cursor "$_target" || return
+			tuish_actor_set "$_id" selected_key "$_key" || return
+			_tuish_actor_emit "$_id" select "$_key"
+		fi
+	fi
 	_tuish_actor_emit "$_id" scroll "$_next"
 }
 
