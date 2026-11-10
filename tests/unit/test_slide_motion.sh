@@ -74,6 +74,7 @@ tuish_motion_advance intro 1 || _status=$?
 assert_eq "$_status" 2 "finished timeline cannot advance again"
 
 tuish_motion_create resized 1000 5 Resize
+tuish_actor_on resized resize _motion_callback
 tuish_motion_enter resized
 tuish_motion_advance resized 500
 tuish_motion_resize resized 9
