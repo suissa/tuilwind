@@ -56,6 +56,9 @@ tuish_compositor_add overlay 1001 && _rc=0 || _rc=$?
 assert_eq "$_rc" 2 "z-order range validated"
 tuish_cellbuf_init small 2 2
 tuish_cellbuf_set overlay 4 4 CLIP
+tuish_compositor_compose small
+ tuish_cellbuf_get small 1 1
+assert_eq "$TUISH_CELL_GLYPH" "" "composition clips cells outside target dimensions"
 tuish_compositor_remove overlay
 tuish_compositor_compose frame
 tuish_cellbuf_get frame 1 1
