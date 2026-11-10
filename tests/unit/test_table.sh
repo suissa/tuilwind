@@ -71,6 +71,11 @@ assert_contains "$_output" 'Beta' "render includes selected row data"
 assert_contains "$_output" '> ' "render marks selected row"
 assert_eq "$TABLE_EVENT" '1:inventory' "render callback fires"
 
+tuish_table_set_width inventory 1 4
+tuish_table_select inventory 2
+_output=$(tuish_table_render inventory)
+assert_contains "$_output" 'Alph' "wide cell content is truncated to configured display width"
+
 tuish_table_set_cell inventory 1 2 7
 tuish_actor_get inventory cell_1_2
 assert_eq "$TUISH_ACTOR_VALUE" 7 "cell update changes data"
