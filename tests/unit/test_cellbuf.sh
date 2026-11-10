@@ -20,6 +20,7 @@ tuish_cellbuf_set base 2 2 B bg=17
 tuish_cellbuf_get base 1 1
 assert_eq "$TUISH_CELL_GLYPH" A "cell glyph read"
 assert_eq "$TUISH_CELL_FG" 51 "cell foreground read"
+assert_eq "$TUISH_CELL_BG" "" "unset background remains transparent"
 tuish_cellbuf_get base 2 2
 assert_eq "$TUISH_CELL_BG" 17 "cell background read"
 tuish_cellbuf_set base 2 2 C fg=39
@@ -30,22 +31,31 @@ tuish_cellbuf_set base 5 1 X && _rc=0 || _rc=$?
 assert_eq "$_rc" 2 "out-of-bounds write rejected"
 tuish_cellbuf_set base 1 2 'bad|glyph' && _rc=0 || _rc=$?
 assert_eq "$_rc" 2 "record separator rejected"
-tuish_cellbuf_set overlay 1 1 Z fg=203
+tuish_cellbuf_set overlay 1 1 Z fg=203 bg=17
 tuish_cellbuf_set overlay 3 3 O
 tuish_compositor_add base 0
 tuish_compositor_add overlay 10
 tuish_compositor_compose frame
 tuish_cellbuf_get frame 1 1
 assert_eq "$TUISH_CELL_GLYPH" Z "higher z layer overlays lower z"
-assert_eq "$TUISH_CELL_FG" 203 "layer style preserved"
+assert_eq "$TUISH_CELL_FG" 203 "layer foreground preserved"
+assert_eq "$TUISH_CELL_BG" 17 "layer background preserved"
 tuish_cellbuf_get frame 2 2
 assert_eq "$TUISH_CELL_GLYPH" C "lower layer remains visible through transparent cells"
 tuish_cellbuf_get frame 3 3
 assert_eq "$TUISH_CELL_GLYPH" O "overlay-only cell copied"
+tuish_cellbuf_fill independent F 42 17
+ tuish_cellbuf_get independent 2 2
+assert_eq "$TUISH_CELL_GLYPH" F "fill writes every cell"
+assert_eq "$TUISH_CELL_BG" 17 "fill preserves background"
 tuish_cellbuf_init independent 2 2
 tuish_cellbuf_set independent 1 1 I
 tuish_cellbuf_get base 1 1
 assert_eq "$TUISH_CELL_GLYPH" A "named buffers remain independent"
+tuish_compositor_add overlay 1001 && _rc=0 || _rc=$?
+assert_eq "$_rc" 2 "z-order range validated"
+tuish_cellbuf_init small 2 2
+tuish_cellbuf_set overlay 4 4 CLIP
 tuish_compositor_remove overlay
 tuish_compositor_compose frame
 tuish_cellbuf_get frame 1 1
