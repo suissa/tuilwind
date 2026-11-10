@@ -90,7 +90,7 @@ is optional -- pick what you need:
 | `actor.sh`    | Actor lifecycle, messages and component state   |
 | `progress.sh` | Animated progress Actor component                |
 | `slide_motion.sh` | Deterministic timeline and frame scrubbing       |
-| `table.sh` | Interactive data table Actor                     |
+| `table.sh`     | Interactive data table Actor                     |
 | `monitor.sh`  | Best-effort host/system metrics                  |
 
 ## Examples
