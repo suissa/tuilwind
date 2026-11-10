@@ -20,6 +20,8 @@ The runtime recognizes the components tracked by the project issues: progress, s
 
 This is deliberately a foundation, not a claim that all 25 component types have bespoke rendering implementations. Component-specific rendering and input adapters can be added incrementally without changing the Actor contract.
 
+The first concrete component adapter is [Progress](progress.md), which adds clamped percentage updates, resize handling, animation ticks, and a reusable text renderer.
+
 ## Live dashboard
 
 Run `sh examples/agent_dashboard.sh` in a terminal. It refreshes host, OS, uptime, load average, memory use, process count and terminal/session information, and manages three heartbeat worker processes. Use Up/Down to select an agent, Enter to start/stop it, R to redraw, and Q to exit. The worker processes are lifecycle demonstrations, not production AI agents; replace their heartbeat body with an application-owned agent command.

@@ -88,6 +88,7 @@ is optional -- pick what you need:
 | `md.sh`       | Markdown to a record stream (standalone)        |
 | `host.sh`     | Hosting several live apps in one loop           |
 | `actor.sh`    | Actor lifecycle, messages and component state   |
+| `progress.sh` | Animated progress Actor component                |
 | `monitor.sh`  | Best-effort host/system metrics                  |
 
 ## Examples
@@ -100,6 +101,7 @@ bash examples/boxes.sh        # Box drawing styles and composable layouts
 bash examples/canvas_demo.sh  # Two independently scrollable clipped panels
 bash examples/debug.sh        # Live event inspector
 bash examples/agent_dashboard.sh # Live host metrics and managed agent workers
+bash examples/progress_demo.sh    # Animated progress Actor
 bash examples/width.sh        # Unicode width ACID test
 bash examples/slow_menu.sh    # Streaming output in a grow viewport
 ```
