@@ -95,13 +95,25 @@ tuish_actor_get single phase
 assert_eq "$TUISH_ACTOR_VALUE" finished "single-frame timeline can finish"
 
 tuish_motion_create cancelled 100 3 Cancel
+tuish_actor_on cancelled exit _motion_callback
 tuish_motion_enter cancelled
 tuish_motion_cancel cancelled
+assert_eq "$MOTION_CALLBACK" cancelled:cancelled "cancel emits exit callback"
 tuish_actor_get cancelled phase
 assert_eq "$TUISH_ACTOR_VALUE" cancelled "cancel changes timeline phase"
 _status=0
 tuish_motion_scrub cancelled 1 || _status=$?
 assert_eq "$_status" 2 "cancelled timeline rejects scrubbing"
+_status=0
+tuish_motion_finish cancelled || _status=$?
+assert_eq "$_status" 2 "cancelled timeline cannot be finished"
+
+_status=0
+tuish_motion_create bad_label 100 3 "bad|label" || _status=$?
+assert_eq "$_status" 2 "unsafe labels are rejected before registration"
+_status=0
+tuish_motion_create leading_zero 010 3 || _status=$?
+assert_eq "$_status" 2 "non-canonical numeric input is rejected"
 
 _status=0
 tuish_motion_create bad_duration 0 3 || _status=$?
