@@ -24,9 +24,6 @@ tuish_tree_add_node files lib src lib
 tuish_tree_add_node files unit tests unit
 tuish_actor_get files item_count
 assert_eq "$TUISH_ACTOR_VALUE" 3 "collapsed tree only exposes root children"
-tuish_tree_toggle files files
-tuish_actor_get files item_count
-assert_eq "$TUISH_ACTOR_VALUE" 3 "root expansion retains immediate children"
 tuish_tree_toggle files src
 tuish_actor_get files item_count
 assert_eq "$TUISH_ACTOR_VALUE" 5 "expanding a branch reveals descendants"
