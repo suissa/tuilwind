@@ -37,6 +37,7 @@ tuish_tree_move files -1
 tuish_actor_get files selected_id
 assert_eq "$TUISH_ACTOR_VALUE" lib "keyboard navigation moves to previous visible node"
 
+tuish_tree_select files main
 tuish_tree_toggle files src
 tuish_actor_get files selected_id
 assert_eq "$TUISH_ACTOR_VALUE" files "selection moves to nearest visible root when selected branch collapses"
@@ -72,6 +73,10 @@ assert_eq "$TUISH_ACTOR_VALUE" 3 "viewport clips around selected node"
 tuish_tree_set_label files main entrypoint.sh
 tuish_actor_get files node_label_main
 assert_eq "$TUISH_ACTOR_VALUE" entrypoint.sh "node label updates without changing ID"
+tuish_actor_action files expand files
+_tuish_tree_status=0
+tuish_tree_resize files 0 || _tuish_tree_status=$?
+assert_eq "$_tuish_tree_status" 2 "zero viewport height is rejected"
 tuish_actor_destroy files
 tuish_actor_count
 assert_eq "$TUISH_ACTOR_COUNT" 0 "tree Actor cleanup removes registry data"
