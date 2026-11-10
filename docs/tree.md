@@ -14,7 +14,7 @@ Source `actor.sh`, then `tree.sh`. The adapter stores a flat, stable-ID node reg
 - `tuish_tree_resize TREE_ID VISIBLE_ROWS`
 - `tuish_tree_render TREE_ID`
 
-Node IDs are stable shell-safe identifiers and remain unchanged when labels or parent positions change. Adding a node requires an existing parent. The tree enforces a configurable internal maximum of 10,000 nodes and 64 levels. Render output is clipped to the configured viewport and selection is preserved by ID while the node remains visible. If a collapsed branch hides the selected node, selection returns to the root.
+Node IDs are stable shell-safe identifiers and remain unchanged when labels or parent positions change. Adding a node requires an existing parent. The tree enforces an internal maximum of 10,000 nodes and 64 levels; attempts to exceed either bound are rejected before the hierarchy is mutated. Render output is clipped to the configured viewport and selection is preserved by ID while the node remains visible. If a collapsed branch hides the selected node, selection returns to the root.
 
 Callbacks: `data_change`, `select`, `expand`, `collapse`, `toggle`, `navigate`, `resize`, and `render`. Callback functions receive the tree ID and the event payload.
 
