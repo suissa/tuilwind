@@ -9,6 +9,7 @@ _tuish_slide_motion_loaded=1
 
 _tuish_motion_uint_range () {
 	_tuish_actor_is_uint "$1" || return 1
+	case "$1" in 0|[1-9]*) ;; *) return 1;; esac
 	test "$1" -ge "$2" && test "$1" -le "$3"
 }
 
@@ -32,6 +33,7 @@ tuish_motion_create () {
 	local _id=$1 _duration=$2 _frames=$3 _label=${4:-}
 	_tuish_motion_uint_range "$_duration" 1 2147483647 || return 2
 	_tuish_motion_uint_range "$_frames" 1 100000 || return 2
+	_tuish_actor_valid_value "$_label" || return 2
 	tuish_actor_create "$_id" slide-motion || return
 	tuish_actor_set "$_id" duration_ms "$_duration" || return
 	tuish_actor_set "$_id" frame_count "$_frames" || return
@@ -89,7 +91,9 @@ tuish_motion_cancel () {
 }
 
 tuish_motion_finish () {
-	local _id=$1 _duration _frames _last
+	local _id=$1 _duration _frames _last _phase
+	tuish_actor_get "$_id" phase || return; _phase=$TUISH_ACTOR_VALUE
+	case "$_phase" in finished|exited|cancelled) return 2;; esac
 	tuish_actor_get "$_id" duration_ms || return; _duration=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" frame_count || return; _frames=$TUISH_ACTOR_VALUE
 	_last=$((_frames - 1))
@@ -125,7 +129,7 @@ tuish_motion_advance () {
 # Scrub to a zero-based frame. Out-of-range frames clamp to the timeline.
 tuish_motion_scrub () {
 	local _id=$1 _frame=$2 _duration _frames _phase _enabled
-	_tuish_actor_is_uint "$_frame" || return 2
+	_tuish_motion_uint_range "$_frame" 0 2147483647 || return 2
 	tuish_actor_get "$_id" scroll_scrub || return; _enabled=$TUISH_ACTOR_VALUE
 	test "$_enabled" = 1 || return 2
 	tuish_actor_get "$_id" phase || return; _phase=$TUISH_ACTOR_VALUE
