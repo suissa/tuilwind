@@ -89,7 +89,8 @@ is optional -- pick what you need:
 | `host.sh`     | Hosting several live apps in one loop           |
 | `actor.sh`    | Actor lifecycle, messages and component state   |
 | `progress.sh` | Animated progress Actor component                |
-| `slide_motion.sh` | Deterministic timeline and frame scrubbing       |\n| `table.sh` | Interactive data table Actor                     |
+| `slide_motion.sh` | Deterministic timeline and frame scrubbing       |
+| `table.sh` | Interactive data table Actor                     |
 | `monitor.sh`  | Best-effort host/system metrics                  |
 
 ## Examples
@@ -103,7 +104,8 @@ bash examples/canvas_demo.sh  # Two independently scrollable clipped panels
 bash examples/debug.sh        # Live event inspector
 bash examples/agent_dashboard.sh # Live host metrics and managed agent workers
 bash examples/progress_demo.sh    # Animated progress Actor
-bash examples/slide_motion_demo.sh # Timeline and frame scrubbing\nbash examples/table_demo.sh        # Interactive data table
+bash examples/slide_motion_demo.sh # Timeline and frame scrubbing
+bash examples/table_demo.sh        # Interactive data table
 bash examples/width.sh        # Unicode width ACID test
 bash examples/slow_menu.sh    # Streaming output in a grow viewport
 ```
@@ -122,7 +124,8 @@ editor, and what the website does with all of them.
 - [Viewport Modes (viewport.sh)](docs/viewport.md) -- fullscreen, fixed, grow
 - [Hosting and Contexts](docs/hosting.md) -- one app inside another, cooperative multi-app loops
 - [Actor Runtime](docs/actors.md) -- Actor API, component catalog and live dashboard
-- [SlideMotion](docs/slide-motion.md) -- deterministic timeline and scrubbing\n- [Interactive Table](docs/table.md) -- data, selection, viewport and rendering
+- [SlideMotion](docs/slide-motion.md) -- deterministic timeline and scrubbing
+- [Interactive Table](docs/table.md) -- data, selection, viewport and rendering
 - [Box Drawing (draw.sh)](docs/draw.md) -- styles, junctions, clipping
 - [String Utilities (str.sh)](docs/str.md) -- Unicode width, substrings
 - [Line Buffer (buf.sh)](docs/buf.md) -- indexed line storage
