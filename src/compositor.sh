@@ -12,7 +12,9 @@ tuish_compositor_clear () { TUISH_COMPOSITOR_LAYERS=''; _tuish_compositor_sequen
 
 tuish_compositor_add () {
   local _co_buf=$1 _co_z=$2 _co_next='' _co_line _co_id _co_seq
-  _tuish_cellbuf_name_ok "$_co_buf" && case "$_co_z" in -[0-9]*|[0-9]*) ;; *) return 2;; esac
+  _tuish_cellbuf_name_ok "$_co_buf" || return 2
+  case "$_co_z" in -*) case "${_co_z#-}" in ''|*[!0-9]*) return 2;; esac;; *) case "$_co_z" in ''|*[!0-9]*) return 2;; esac;; esac
+  test "$_co_z" -ge -999 && test "$_co_z" -le 999 || return 2
   tuish_cellbuf_size "$_co_buf" || return 1
   while IFS= read -r _co_line; do
     test -z "$_co_line" && continue
@@ -44,8 +46,9 @@ EOF
 # Equal z values preserve registration order.
 tuish_compositor_compose () {
   local _co_target=$1 _co_z _co_line _co_buf _co_row _co_col _co_glyph _co_fg _co_bg _co_attrs
-  local _co_zpart _co_seq _co_cell
+  local _co_zpart _co_seq _co_cell _co_target_w _co_target_h
   tuish_cellbuf_size "$_co_target" || return 1
+  _co_target_w=$TUISH_CELLBUF_WIDTH _co_target_h=$TUISH_CELLBUF_HEIGHT
   tuish_cellbuf_clear "$_co_target" || return
   _co_z=-999
   while test "$_co_z" -le 999; do
@@ -63,6 +66,7 @@ tuish_compositor_compose () {
         _co_glyph=${_co_cell%%|*}; _co_cell=${_co_cell#*|}
         _co_fg=${_co_cell%%|*}; _co_cell=${_co_cell#*|}
         _co_bg=${_co_cell%%|*}; _co_attrs=${_co_cell#*|}
+        test "$_co_row" -le "$_co_target_h" && test "$_co_col" -le "$_co_target_w" || continue
         tuish_cellbuf_set "$_co_target" "$_co_row" "$_co_col" "$_co_glyph" "fg=$_co_fg" "bg=$_co_bg" "attrs=$_co_attrs" || return
       done <<EOF
 $TUISH_CELLBUF_CELLS
