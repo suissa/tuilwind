@@ -82,9 +82,11 @@ tuish_split_view_set_ratio () {
 }
 
 tuish_split_view_set_gap () {
-  local _view=$1 _gap=$2
+  local _view=$1 _gap=$2 _old
   _tuish_split_uint "$_gap" && test "$_gap" -le 20 || return 2
+  tuish_actor_get "$_view" gap || return; _old=$TUISH_ACTOR_VALUE
   tuish_actor_set "$_view" gap "$_gap" || return
+  tuish_split_view_layout "$_view" >/dev/null || { tuish_actor_set "$_view" gap "$_old"; return 2; }
   _tuish_actor_emit "$_view" layout "$_gap"
 }
 
@@ -241,7 +243,7 @@ tuish_split_view_render () {
     _col=${_record%%,*}; _record=${_record#*,}
     _width=${_record%%,*}; _height=${_record#*,}
     tuish_actor_get "$_view" "pane_label_$_pane" || :; _label=$TUISH_ACTOR_VALUE
-    _out="${_out}${_pane} ${_row},${_col} ${_width}x${_height}"
+    _out="${_out}${_label:-$_pane} (${_pane}) ${_row},${_col} ${_width}x${_height}"
     test "$_pane" = "$_active" && _out="${_out} [active]"
     _out="${_out}\n"
     test -n "$_label" && :
