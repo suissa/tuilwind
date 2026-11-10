@@ -67,15 +67,24 @@ tuish_compositor_remove overlay
 tuish_compositor_compose frame
 tuish_cellbuf_get frame 1 1
 assert_eq "$TUISH_CELL_GLYPH" A "removing a layer reveals lower layer"
-_render_capture='' _sgr_capture='' _sgr_reset_count=0
-tuish_draw_text () { _render_capture="${_render_capture}R$1,$2,$3|"; }
-tuish_sgr () { _sgr_capture=$1; }
-tuish_sgr_reset () { _sgr_reset_count=$((_sgr_reset_count + 1)); }
+_render_capture='' _render_style_capture=''
+tuish_draw_text () { _render_capture="${_render_capture}R$1,$2,$3|"; _render_style_capture="$*"; }
 tuish_compositor_render frame
 assert_contains "$_render_capture" 'R1,1,A' "renderer emits composed cell"
-assert_eq "$_sgr_capture" '1;4' "renderer applies stored bold and underline attributes"
-assert_eq "$_sgr_reset_count" 1 "renderer resets attributes after styled cell"
+assert_contains "$_render_style_capture" 'attrs=1;4' "renderer forwards stored bold and underline attributes"
 assert_contains "$_render_capture" 'R2,2,C' "renderer emits remaining cells"
+
+# The text layer applies attributes and resets them together with other SGR styles.
+_tuish_str_loaded=''
+tuish_vmove () { return 0; }
+tuish_print () { _printed_text=$1; }
+_sgr_capture='' _sgr_reset_count=0
+ tuish_sgr () { _sgr_capture="${_sgr_capture}${_sgr_capture:+|}$1"; }
+tuish_sgr_reset () { _sgr_reset_count=$((_sgr_reset_count + 1)); }
+tuish_text 1 1 X 'attrs=1;4'
+assert_eq "$_sgr_capture" '1;4' "text renderer applies SGR attributes"
+assert_eq "$_sgr_reset_count" 1 "text renderer resets SGR attributes after printing"
+assert_eq "$_printed_text" X "text renderer prints styled glyph"
 tuish_cellbuf_clear base
 tuish_cellbuf_get base 1 1 && _rc=0 || _rc=$?
 assert_eq "$_rc" 1 "clear makes cells transparent"
