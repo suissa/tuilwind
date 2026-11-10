@@ -37,14 +37,14 @@ tuish_actor_get inventory cell_2_2
 assert_eq "$TUISH_ACTOR_VALUE" 4 "row data stored by cell"
 assert_eq "$TABLE_EVENT" 'sku-c:inventory' "data change callback receives row key"
 
-tuish_table_select inventory 2
+tuish_actor_action inventory select 2
 tuish_actor_get inventory selected_key
 assert_eq "$TUISH_ACTOR_VALUE" sku-b "selection retains stable row key"
 assert_eq "$TABLE_EVENT" 'sku-b:inventory' "select callback receives stable key"
-tuish_table_move inventory 1
+tuish_actor_action inventory next ''
 tuish_actor_get inventory cursor
 assert_eq "$TUISH_ACTOR_VALUE" 3 "next moves cursor"
-tuish_table_move inventory -1
+tuish_actor_action inventory previous ''
 tuish_actor_get inventory cursor
 assert_eq "$TUISH_ACTOR_VALUE" 2 "previous moves cursor"
 
