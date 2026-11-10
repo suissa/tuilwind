@@ -4,6 +4,7 @@ Source `src/actor.sh` and `src/slide_motion.sh` to use a deterministic timeline 
 
 ```sh
 tuish_motion_create intro 10000 101 "Intro"
+tuish_motion_set_trajectory intro "chapter-1,chapter-2"
 tuish_motion_enter intro
 tuish_motion_advance intro 250
 tuish_motion_scrub intro 50
@@ -13,6 +14,8 @@ tuish_motion_finish intro
 tuish_motion_render intro
 tuish_actor_destroy intro
 ```
+
+The `trajectory` property stores an optional application-owned descriptor through `tuish_motion_set_trajectory ID VALUE`; the core adapter does not interpret that descriptor. The current frame/time mapping is driven by `duration_ms` and `frame_count`, with `easing_type` initialized to `linear`.
 
 The API uses zero-based frame indexes. `duration_ms` must be a positive integer and `frame_count` must be between 1 and 100000. Advancing by an elapsed-time delta maps time to a frame with integer arithmetic; the last frame is reached exactly at the duration boundary. Scrubbing maps a frame back to its corresponding elapsed time and clamps out-of-range frames to the first or last frame.
 
