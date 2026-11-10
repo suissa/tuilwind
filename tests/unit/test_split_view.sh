@@ -62,7 +62,7 @@ assert_eq "$_status" 4 'unknown pane focus is rejected'
 tuish_split_view_pointer layout 20 5
 assert_eq "$TUISH_SPLIT_VIEW_HIT" navigation 'pointer hit-testing resolves first pane'
 tuish_split_view_pointer layout 60 5
-assert_eq "$_SPLIT_EVENT" 'navigation:layout' 'pointer focus emits focus callback'
+assert_eq "$_SPLIT_EVENT" 'content:layout' 'pointer focus emits focus callback'
 tuish_split_view_child_exit layout navigation
 tuish_actor_get layout pane_count
 assert_eq "$TUISH_ACTOR_VALUE" 1 'child exit removes pane from active layout'
