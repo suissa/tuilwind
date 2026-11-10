@@ -21,6 +21,8 @@ tuish_table_set_header inventory 1 Name
 tuish_table_set_header inventory 2 Quantity
 tuish_table_set_header inventory 3 Status
 tuish_table_set_width inventory 1 8
+tuish_table_set_padding inventory 2
+tuish_table_set_border_style inventory rounded
 tuish_table_set_width inventory 2 6
 tuish_table_set_width inventory 3 8
 
@@ -96,6 +98,15 @@ assert_eq "$_status" 2 "record separator in cell rejected"
 _status=0
 tuish_table_resize inventory 0 || _status=$?
 assert_eq "$_status" 2 "zero visible rows rejected"
+_status=0
+tuish_table_set_border_style inventory invalid || _status=$?
+assert_eq "$_status" 2 "unknown border style rejected"
+
+tuish_table_set_rows inventory 1
+tuish_actor_get inventory selected_key
+assert_eq "$TUISH_ACTOR_VALUE" '' "selection clears when its stable key is removed"
+tuish_actor_get inventory cell_2_1
+assert_eq "$TUISH_ACTOR_VALUE" '' "removed row storage is cleared"
 
 tuish_table_create empty 0 2 3
 tuish_table_set_header empty 1 ID
