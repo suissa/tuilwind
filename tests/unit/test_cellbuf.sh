@@ -68,7 +68,7 @@ tuish_compositor_compose frame
 tuish_cellbuf_get frame 1 1
 assert_eq "$TUISH_CELL_GLYPH" A "removing a layer reveals lower layer"
 _render_capture='' _render_style_capture=''
-tuish_draw_text () { _render_capture="${_render_capture}R$1,$2,$3|"; _render_style_capture="$*"; }
+tuish_draw_text () { _render_capture="${_render_capture}R$1,$2,$3|"; _render_style_capture="${_render_style_capture} $*"; }
 tuish_compositor_render frame
 assert_contains "$_render_capture" 'R1,1,A' "renderer emits composed cell"
 assert_contains "$_render_style_capture" 'attrs=1;4' "renderer forwards stored bold and underline attributes"
@@ -79,7 +79,7 @@ _tuish_str_loaded=''
 tuish_vmove () { return 0; }
 tuish_print () { _printed_text=$1; }
 _sgr_capture='' _sgr_reset_count=0
- tuish_sgr () { _sgr_capture="${_sgr_capture}${_sgr_capture:+|}$1"; }
+tuish_sgr () { _sgr_capture="${_sgr_capture}${_sgr_capture:+|}$1"; }
 tuish_sgr_reset () { _sgr_reset_count=$((_sgr_reset_count + 1)); }
 tuish_text 1 1 X 'attrs=1;4'
 assert_eq "$_sgr_capture" '1;4' "text renderer applies SGR attributes"
