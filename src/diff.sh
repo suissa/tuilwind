@@ -138,6 +138,8 @@ tuish_diff_render () {
     _dr_row=$((_dr_row + 1))
   done
 
-  _tuish_diff_snapshot "$_dr_previous" "$_dr_current" "$_dr_w" "$_dr_h" || return
+  if test "$TUISH_DIFF_CHANGED_CELLS" -gt 0 || test "$_dr_arg_force" -eq 1; then
+    _tuish_diff_snapshot "$_dr_previous" "$_dr_current" "$_dr_w" "$_dr_h" || return
+  fi
   _tuish_diff_force=0
 }
