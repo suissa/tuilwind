@@ -7,11 +7,13 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 . "$ROOT/src/term.sh"
 . "$ROOT/src/str.sh"
 . "$ROOT/src/draw.sh"
+. "$ROOT/src/viewport.sh"
 . "$ROOT/src/theme.sh"
 . "$ROOT/src/ui.sh"
 
 tuish_theme_use cyber
-tuish_update_size
+tuish_init
+tuish_viewport fullscreen
 tuish_begin
 tuish_clear_screen
 tuish_ui_section 2 4 "TUILWIND / SYSTEM OVERVIEW"
@@ -30,3 +32,4 @@ tuish_ui_badge 17 4 "NOMINAL" tone=success
 tuish_ui_badge 17 16 "DEPLOYING" tone=warning
 tuish_draw_text 20 4 "F1  Overview    F2  Metrics    Q  Quit" fg="$TUISH_THEME_MUTED"
 tuish_end
+tuish_fini
