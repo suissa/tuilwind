@@ -204,7 +204,18 @@ tuish_actor_action () {
 				cancel) command -v tuish_motion_cancel >/dev/null 2>&1 || return 2; tuish_motion_cancel "$_id";;
 				*) return 2;;
 			esac;;
-		table|list|tabs|command-launcher) case "$_action" in select) tuish_actor_step "$_id" select "$_value";; filter) tuish_actor_set "$_id" filter "$_value";; *) return 2;; esac;;
+		table)
+			case "$_action" in
+				select) command -v tuish_table_select >/dev/null 2>&1 || return 2; tuish_table_select "$_id" "$_value";;
+				next) command -v tuish_table_move >/dev/null 2>&1 || return 2; tuish_table_move "$_id" 1;;
+				previous) command -v tuish_table_move >/dev/null 2>&1 || return 2; tuish_table_move "$_id" -1;;
+				scroll) command -v tuish_table_scroll >/dev/null 2>&1 || return 2; tuish_table_scroll "$_id" "$_value";;
+				resize) command -v tuish_table_resize >/dev/null 2>&1 || return 2; tuish_table_resize "$_id" "$_value";;
+				render) command -v tuish_table_render >/dev/null 2>&1 || return 2; tuish_table_render "$_id";;
+				filter) tuish_actor_set "$_id" filter "$_value";;
+				*) return 2;;
+			esac;;
+		list|tabs|command-launcher) case "$_action" in select) tuish_actor_step "$_id" select "$_value";; filter) tuish_actor_set "$_id" filter "$_value";; *) return 2;; esac;;
 		tree) test "$_action" = toggle || return 2; tuish_actor_step "$_id" toggle;;
 		split-view) test "$_action" = ratio && _tuish_actor_is_uint "$_value" && test "$_value" -ge 1 && test "$_value" -le 99 || return 2; tuish_actor_set "$_id" split_ratio "$_value";;
 		text-input|text-area|code-editor) case "$_action" in input|replace) tuish_actor_set "$_id" value "$_value";; *) return 2;; esac;;

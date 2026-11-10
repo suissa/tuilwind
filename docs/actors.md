@@ -21,7 +21,7 @@ The runtime recognizes the components tracked by the project issues: progress, s
 
 This is deliberately a foundation, not a claim that all 25 component types have bespoke rendering implementations. Component-specific rendering and input adapters can be added incrementally without changing the Actor contract.
 
-The first concrete component adapters are [Progress](progress.md), which adds clamped percentage updates, resize handling, animation ticks and a reusable text renderer, and [SlideMotion](slide-motion.md), which adds deterministic timeline advancement, scrubbing and lifecycle transitions.
+The concrete component adapters are [Progress](progress.md), [SlideMotion](slide-motion.md) and [Interactive Table](table.md). The table adapter adds keyed row selection, viewport-aware navigation, resize/scroll events, bounded cell rendering and empty-state handling.
 
 ## Live dashboard
 
