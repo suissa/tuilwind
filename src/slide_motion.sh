@@ -40,9 +40,18 @@ tuish_motion_create () {
 	tuish_actor_set "$_id" current_frame 0 || return
 	tuish_actor_set "$_id" elapsed_ms 0 || return
 	tuish_actor_set "$_id" phase idle || return
+	tuish_actor_set "$_id" trajectory '' || return
 	tuish_actor_set "$_id" easing_type linear || return
 	tuish_actor_set "$_id" scroll_scrub 1 || return
 	tuish_actor_set "$_id" label "$_label"
+}
+
+# Store an application-owned trajectory descriptor. The core timeline keeps
+# frame/time mapping deterministic and leaves trajectory interpretation to the caller.
+tuish_motion_set_trajectory () {
+	local _id=$1 _trajectory=$2
+	_tuish_actor_valid_value "$_trajectory" || return 2
+	tuish_actor_set "$_id" trajectory "$_trajectory"
 }
 
 tuish_motion_enter () {
