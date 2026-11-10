@@ -91,9 +91,9 @@ tuish_compositor_render () {
     _co_bg=${_co_line%%|*}; _co_attrs=${_co_line#*|}
     # term.sh combines attrs and colors into one text style and resets it afterwards.
     if test -n "$_co_fg" && test -n "$_co_bg"; then
-      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" fg="$_co_fg" attrs="$_co_attrs" bg="$_co_bg" attrs="$_co_attrs"
+      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" fg="$_co_fg" bg="$_co_bg" attrs="$_co_attrs"
     elif test -n "$_co_fg"; then
-      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" fg="$_co_fg"
+      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" fg="$_co_fg" attrs="$_co_attrs"
     elif test -n "$_co_bg"; then
       tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" bg="$_co_bg" attrs="$_co_attrs"
     else
