@@ -44,7 +44,6 @@ tuish_split_view_create () {
 tuish_split_view_add_pane () {
   local _view=$1 _pane=$2 _label=${3:-$_pane} _ids _count
   _tuish_actor_valid_name "$_pane" && tuish_actor_valid_value "$_label" || return 2
-  _tuish_tree_status=0
   tuish_actor_get "$_view" direction || return 1
   _tuish_split_has_pane "$_view" "$_pane" && return 3
   tuish_actor_get "$_view" pane_ids || return
@@ -66,7 +65,10 @@ tuish_split_view_set_ratio () {
   _tuish_split_uint "$_ratio" && test "$_ratio" -ge 1 && test "$_ratio" -le 99 || return 2
   tuish_actor_get "$_view" pane_count || return
   test "$TUISH_ACTOR_VALUE" -eq 2 || return 2
+  local _old
+  tuish_actor_get "$_view" split_ratio || return; _old=$TUISH_ACTOR_VALUE
   tuish_actor_set "$_view" split_ratio "$_ratio" || return
+  tuish_split_view_layout "$_view" >/dev/null || { tuish_actor_set "$_view" split_ratio "$_old"; return 2; }
   _tuish_actor_emit "$_view" layout "$_ratio"
 }
 
@@ -81,18 +83,32 @@ tuish_split_view_set_constraints () {
   local _view=$1 _first=$2 _second=$3
   _tuish_split_uint "$_first" && test "$_first" -ge 1 || return 2
   _tuish_split_uint "$_second" && test "$_second" -ge 1 || return 2
+  local _old_first _old_second
+  tuish_actor_get "$_view" min_first || return; _old_first=$TUISH_ACTOR_VALUE
+  tuish_actor_get "$_view" min_second || return; _old_second=$TUISH_ACTOR_VALUE
   tuish_actor_set "$_view" min_first "$_first" || return
   tuish_actor_set "$_view" min_second "$_second" || return
-  tuish_split_view_layout "$_view" >/dev/null
+  tuish_split_view_layout "$_view" >/dev/null || {
+    tuish_actor_set "$_view" min_first "$_old_first"
+    tuish_actor_set "$_view" min_second "$_old_second"
+    return 2
+  }
 }
 
 tuish_split_view_resize () {
   local _view=$1 _width=$2 _height=$3
   _tuish_split_uint "$_width" && test "$_width" -ge 1 || return 2
   _tuish_split_uint "$_height" && test "$_height" -ge 1 || return 2
+  local _old_width _old_height
+  tuish_actor_get "$_view" width || return; _old_width=$TUISH_ACTOR_VALUE
+  tuish_actor_get "$_view" height || return; _old_height=$TUISH_ACTOR_VALUE
   tuish_actor_set "$_view" width "$_width" || return
   tuish_actor_set "$_view" height "$_height" || return
-  tuish_split_view_layout "$_view" >/dev/null || return
+  tuish_split_view_layout "$_view" >/dev/null || {
+    tuish_actor_set "$_view" width "$_old_width"
+    tuish_actor_set "$_view" height "$_old_height"
+    return 2
+  }
   _tuish_actor_emit "$_view" resize "${_width}x${_height}"
 }
 
