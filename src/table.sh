@@ -246,7 +246,6 @@ tuish_table_render () {
 		rounded|single) _border='│';;
 		*) _border='|';;
 	esac
-	if test "$_rows" -eq 0; then printf '%s\n' "$_empty"; _tuish_actor_emit "$_id" render "$_empty"; return; fi
 	_line=''
 	_c=1
 	while test "$_c" -le "$_cols"; do
@@ -261,6 +260,7 @@ tuish_table_render () {
 	done
 	_line="${_line}${_border}"
 	printf '%s\n' "$_line"
+	if test "$_rows" -eq 0; then printf '%s\n' "$_empty"; _tuish_actor_emit "$_id" render "$_empty"; return; fi
 	_r=$_offset
 	_total=$((_offset + _visible - 1))
 	test "$_total" -le "$_rows" || _total=$_rows
