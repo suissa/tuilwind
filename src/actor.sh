@@ -192,7 +192,7 @@ tuish_actor_action () {
 	_kind=$TUISH_ACTOR_KIND
 	case "$_kind" in
 		progress) test "$_action" = set || return 2; tuish_actor_step "$_id" progress "$_value";;
-		slide-motion) test "$_action" = seek && _tuish_actor_is_uint "$_value" || return 2; tuish_actor_set "$_id" current_frame "$_value";;
+		slide-motion)\n			case "$_action" in\n				seek) if command -v tuish_motion_scrub >/dev/null 2>&1; then tuish_motion_scrub "$_id" "$_value"; else _tuish_actor_is_uint "$_value" || return 2; tuish_actor_set "$_id" current_frame "$_value"; fi;;\n				advance) command -v tuish_motion_advance >/dev/null 2>&1 || return 2; tuish_motion_advance "$_id" "$_value";;\n				enter) command -v tuish_motion_enter >/dev/null 2>&1 || return 2; tuish_motion_enter "$_id";;\n				wait) command -v tuish_motion_wait >/dev/null 2>&1 || return 2; tuish_motion_wait "$_id";;\n				resume) command -v tuish_motion_resume >/dev/null 2>&1 || return 2; tuish_motion_resume "$_id";;\n				exit) command -v tuish_motion_exit >/dev/null 2>&1 || return 2; tuish_motion_exit "$_id";;\n				finish) command -v tuish_motion_finish >/dev/null 2>&1 || return 2; tuish_motion_finish "$_id";;\n				cancel) command -v tuish_motion_cancel >/dev/null 2>&1 || return 2; tuish_motion_cancel "$_id";;\n				*) return 2;;\n			esac;;
 		table|list|tabs|command-launcher) case "$_action" in select) tuish_actor_step "$_id" select "$_value";; filter) tuish_actor_set "$_id" filter "$_value";; *) return 2;; esac;;
 		tree) test "$_action" = toggle || return 2; tuish_actor_step "$_id" toggle;;
 		split-view) test "$_action" = ratio && _tuish_actor_is_uint "$_value" && test "$_value" -ge 1 && test "$_value" -le 99 || return 2; tuish_actor_set "$_id" split_ratio "$_value";;
