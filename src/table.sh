@@ -107,13 +107,26 @@ tuish_table_set_cell () {
 }
 
 tuish_table_set_rows () {
-	local _id=$1 _rows=$2 _cursor _selected _i _found=0
+	local _id=$1 _rows=$2 _cursor _selected _i _found=0 _old _cols _col
 	_tuish_table_uint "$_rows" && test "$_rows" -le 100000 || return 2
+	tuish_actor_get "$_id" row_count || return; _old=$TUISH_ACTOR_VALUE
+	tuish_actor_get "$_id" column_count || return; _cols=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" cursor || return; _cursor=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" selected_key || :; _selected=$TUISH_ACTOR_VALUE
+	if test "$_rows" -lt "$_old"; then
+		_i=$((_rows + 1))
+		while test "$_i" -le "$_old"; do
+			tuish_actor_set "$_id" "row_key_$_i" '' || return
+			_col=1
+			while test "$_col" -le "$_cols"; do tuish_actor_set "$_id" "cell_${_i}_${_col}" '' || return; _col=$((_col + 1)); done
+			_i=$((_i + 1))
+		done
+	fi
 	tuish_actor_set "$_id" row_count "$_rows" || return
 	if test "$_rows" -eq 0; then
 		_cursor=0
+		tuish_actor_set "$_id" selected_key '' || return
+		tuish_actor_set "$_id" viewport_offset 1 || return
 	else
 		test "$_cursor" -le "$_rows" || _cursor=$_rows
 		if test -n "$_selected"; then
@@ -124,6 +137,7 @@ tuish_table_set_rows () {
 				_i=$((_i + 1))
 			done
 		fi
+		if test -n "$_selected" && test "$_found" -eq 0; then tuish_actor_set "$_id" selected_key '' || return; fi
 	fi
 	tuish_actor_set "$_id" cursor "$_cursor" || return
 	_tuish_table_sync_view "$_id"
