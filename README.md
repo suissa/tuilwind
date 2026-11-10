@@ -97,6 +97,7 @@ is optional -- pick what you need:
 | `ui.sh` | Futuristic panels, badges, sections and progress bars |
 | `cellbuf.sh` | Sparse in-memory cell buffers with per-cell styles |
 | `compositor.sh` | Z-ordered transparent layer composition |
+| `diff.sh` | Cell-level incremental frame rendering |
 | `monitor.sh`  | Best-effort host/system metrics                  |
 
 ## Examples
@@ -116,6 +117,7 @@ bash examples/tree_demo.sh         # Expandable tree navigation
 bash examples/split_view_demo.sh    # Two-pane layout composer
 bash examples/futuristic_dashboard.sh # Futuristic design system demo
 bash examples/compositor_demo.sh    # Layered cell-buffer composition
+bash examples/diff_renderer_demo.sh # Incremental cell redraw
 bash examples/width.sh        # Unicode width ACID test
 bash examples/slow_menu.sh    # Streaming output in a grow viewport
 ```
@@ -140,6 +142,7 @@ editor, and what the website does with all of them.
 - [SplitView](docs/split-view.md) -- two-pane layout, sizing constraints and focus
 - [Design System](docs/design-system.md) -- themes and reusable visual primitives
 - [CellBuffer + Compositor](docs/cellbuf-compositor.md) -- in-memory cells and layered rendering
+- [DiffRenderer](docs/diff-renderer.md) -- redraw only changed cells
 - [Box Drawing (draw.sh)](docs/draw.md) -- styles, junctions, clipping
 - [String Utilities (str.sh)](docs/str.md) -- Unicode width, substrings
 - [Line Buffer (buf.sh)](docs/buf.md) -- indexed line storage
