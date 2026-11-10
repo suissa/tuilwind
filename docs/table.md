@@ -18,7 +18,7 @@ tuish_table_render inventory
 tuish_actor_destroy inventory
 ```
 
-Rows and columns are one-based. Column count is fixed at creation (1–64); row count may be changed with `tuish_table_set_rows ID COUNT`. Each row is assigned a stable key and exactly one value per column through `tuish_table_set_row ID ROW KEY CELL...`. Individual cells can be changed with `tuish_table_set_cell`; headers and column widths use `tuish_table_set_header` and `tuish_table_set_width`.
+Rows and columns are one-based. Column count is fixed at creation (1–64); row count may be changed with `tuish_table_set_rows ID COUNT`. Each row is assigned a stable key and exactly one value per column through `tuish_table_set_row ID ROW KEY CELL...`. Individual cells can be changed with `tuish_table_set_cell`; headers, column widths, cell padding and border style use `tuish_table_set_header`, `tuish_table_set_width`, `tuish_table_set_padding` and `tuish_table_set_border_style`.
 
 Selection is tracked by both cursor position and stable row key. When rows are reordered and the selected key is found at a new index, the cursor follows that key. Navigation is clamped to the available rows; viewport offset is adjusted to keep the selected row visible. The renderer truncates cells to configured display widths, using `str.sh` Unicode-aware display-width handling when that module is loaded. Empty datasets retain their header and show the configured empty-state label.
 
