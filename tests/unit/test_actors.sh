@@ -50,6 +50,27 @@ do
 	case " $TUISH_ACTORS " in *" $id "*) assert_eq present absent "$kind destroyed";; *) assert_eq absent absent "$kind destroyed";; esac
 done
 
+# Defensive validation: parent IDs, duplicate IDs, record delimiters, and numbers.
+_actor_status=0
+tuish_actor_create orphan list missing_parent || _actor_status=$?
+assert_eq "$_actor_status" 4 "unknown parent is rejected"
+tuish_actor_create parent list
+_actor_status=0
+tuish_actor_create parent list || _actor_status=$?
+
+assert_eq "$_actor_status" 3 "duplicate actor IDs are rejected"
+tuish_actor_create child slide-motion parent
+_actor_status=0
+tuish_actor_set child unsafe "bad|record" || _actor_status=$?
+
+assert_eq "$_actor_status" 2 "record separators are rejected"
+_actor_status=0
+tuish_actor_action child seek "1; touch /tmp/pwned" || _actor_status=$?
+
+assert_eq "$_actor_status" 2 "non-numeric seek is rejected"
+tuish_actor_destroy child
+tuish_actor_destroy parent
+
 tuish_actor_create demo list
 tuish_actor_set demo item_count 2
 tuish_actor_step demo select 1
