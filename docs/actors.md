@@ -21,7 +21,7 @@ The runtime recognizes the components tracked by the project issues: progress, s
 
 This is deliberately a foundation, not a claim that all 25 component types have bespoke rendering implementations. Component-specific rendering and input adapters can be added incrementally without changing the Actor contract.
 
-The concrete component adapters are [Progress](progress.md), [SlideMotion](slide-motion.md) and [Interactive Table](table.md). The table adapter adds keyed row selection, viewport-aware navigation, resize/scroll events, bounded cell rendering and empty-state handling.
+The concrete component adapters are [Progress](progress.md), [SlideMotion](slide-motion.md), [Interactive Table](table.md) and [Expandable Tree](tree.md). The table adapter adds keyed row selection and bounded rendering; the tree adapter adds stable node IDs, cycle-safe parent links, expansion, keyboard navigation and viewport clipping.
 
 ## Live dashboard
 
