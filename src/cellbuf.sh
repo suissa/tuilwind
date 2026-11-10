@@ -18,6 +18,11 @@ _tuish_cellbuf_name_ok () { case "$1" in ''|*[!A-Za-z0-9_-]*) return 1;; esac; }
 _tuish_cellbuf_uint () { case "$1" in ''|*[!0-9]*) return 1;; esac; }
 _tuish_cellbuf_value_ok () { case "$1" in *'|'*|*'
 '*) return 1;; esac; }
+_tuish_cellbuf_attrs_ok () {
+  case "$1" in
+    *[!0-9\;]*|\;*|*\;|*\;\;*) return 1;;
+  esac
+}
 
 tuish_cellbuf_init () {
   local _cb_name=$1 _cb_w=$2 _cb_h=$3 _cb_next='' _cb_line _cb_id
@@ -84,7 +89,8 @@ tuish_cellbuf_set () {
     esac
     shift
   done
-  _tuish_cellbuf_value_ok "$_cb_fg" && _tuish_cellbuf_value_ok "$_cb_bg" && _tuish_cellbuf_value_ok "$_cb_attrs" || return 2
+  _tuish_cellbuf_value_ok "$_cb_fg" && _tuish_cellbuf_value_ok "$_cb_bg" || return 2
+  _tuish_cellbuf_attrs_ok "$_cb_attrs" || return 2
   case "$_cb_fg" in ''|*[!0-9]*) ;; *) test "$_cb_fg" -le 255 || return 2;; esac
   case "$_cb_bg" in ''|*[!0-9]*) ;; *) test "$_cb_bg" -le 255 || return 2;; esac
   case "$_cb_fg" in *[!0-9]*) test -z "$_cb_fg" || return 2;; esac
