@@ -58,7 +58,9 @@ tuish_cellbuf_init small 2 2
 tuish_cellbuf_set overlay 4 4 CLIP
 tuish_compositor_compose small
  tuish_cellbuf_get small 1 1
-assert_eq "$TUISH_CELL_GLYPH" "" "composition clips cells outside target dimensions"
+assert_eq "$TUISH_CELL_GLYPH" "Z" "composition retains visible cells inside target dimensions"
+tuish_cellbuf_get small 2 2
+assert_eq "$TUISH_CELL_GLYPH" "C" "composition copies visible lower-layer cells"
 tuish_compositor_remove overlay
 tuish_compositor_compose frame
 tuish_cellbuf_get frame 1 1
