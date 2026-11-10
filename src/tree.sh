@@ -39,10 +39,18 @@ tuish_tree_create () {
 }
 
 tuish_tree_add_node () {
-	local _tree=$1 _node=$2 _parent=$3 _label=$4 _ids _count=0 _item
+	local _tree=$1 _node=$2 _parent=$3 _label=$4 _ids _count=0 _item _walk _depth=0 _max
 	tuish_actor_valid_name "$_node" && tuish_actor_valid_value "$_label" || return 2
 	_tuish_tree_has_node "$_tree" "$_parent" || return 4
 	_tuish_tree_has_node "$_tree" "$_node" && return 3
+	_walk=$_parent
+	tuish_actor_get "$_tree" max_depth || return; _max=$TUISH_ACTOR_VALUE
+	while test -n "$_walk"; do
+		tuish_actor_get "$_tree" "node_parent_$_walk" || return 2
+		_walk=$TUISH_ACTOR_VALUE
+		_depth=$((_depth + 1))
+	done
+	test "$_depth" -le "$_max" || return 2
 	tuish_actor_get "$_tree" node_ids || return; _ids=$TUISH_ACTOR_VALUE
 	for _item in $_ids; do _count=$((_count + 1)); done
 	tuish_actor_get "$_tree" max_nodes || return
