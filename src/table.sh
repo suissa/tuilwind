@@ -60,7 +60,7 @@ tuish_table_set_width () {
 	tuish_actor_set "$_id" "width_$_col" "$_width"
 }
 
-# Set a complete row atomically from the caller's perspective:
+# Set a complete row using one stable key and one value per column:
 # tuish_table_set_row ID ROW STABLE_KEY CELL_1 ... CELL_N
 tuish_table_set_row () {
 	local _id=$1 _row=$2 _key=$3 _cols _col=1 _value _selected
@@ -158,14 +158,15 @@ tuish_table_move () {
 }
 
 tuish_table_scroll () {
-	local _id=$1 _delta=$2 _offset _visible _rows _next
+	local _id=$1 _delta=$2 _offset _visible _rows _next _max
 	case "$_delta" in -*) _tuish_table_uint "${_delta#-}" || return 2;; *) _tuish_table_uint "$_delta" || return 2;; esac
 	tuish_actor_get "$_id" viewport_offset || return; _offset=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" visible_rows || return; _visible=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" row_count || return; _rows=$TUISH_ACTOR_VALUE
 	_next=$((_offset + _delta))
 	test "$_next" -ge 1 || _next=1
-	test "$_next" -le "$_rows" || _next=$_rows
+	test "$_rows" -gt "$_visible" && _max=$((_rows - _visible + 1)) || _max=1
+	test "$_next" -le "$_max" || _next=$_max
 	test "$_next" -ge 1 || _next=1
 	tuish_actor_set "$_id" viewport_offset "$_next" || return
 	_tuish_actor_emit "$_id" scroll "$_next"
