@@ -213,7 +213,7 @@ tuish_tree_resize () {
 }
 
 tuish_tree_render () {
-	local _tree=$1 _all _offset _visible _line=1 _item _selected _indent _width _out='' _ids _parent _node _spaces _label _expanded _marker _prefix
+	local _tree=$1 _all _offset _visible _line=1 _item _selected _indent _width _out='' _ids _parent _node _spaces _label _expanded _marker _prefix _ids _parent _node _spaces _label _expanded _marker _prefix
 	_tuish_tree_rebuild_visible "$_tree" || return
 	tuish_actor_get "$_tree" visible_ids || return; _all=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_tree" viewport_offset || return; _offset=$TUISH_ACTOR_VALUE
