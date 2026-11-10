@@ -11,6 +11,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 . "$ROOT/src/theme.sh"
 . "$ROOT/src/cellbuf.sh"
 . "$ROOT/src/compositor.sh"
+command -v tuish_fnfix >/dev/null 2>&1 && tuish_fnfix
 
 tuish_theme_use cyber
 tuish_cellbuf_init background 48 14
