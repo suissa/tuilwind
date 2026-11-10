@@ -23,6 +23,9 @@ tuish_actor_get intro kind
 assert_eq "$TUISH_ACTOR_VALUE" slide-motion "motion actor type"
 tuish_actor_get intro phase
 assert_eq "$TUISH_ACTOR_VALUE" idle "new timeline starts idle"
+tuish_motion_set_trajectory intro "chapter-1,chapter-2"
+tuish_actor_get intro trajectory
+assert_eq "$TUISH_ACTOR_VALUE" "chapter-1,chapter-2" "trajectory descriptor is retained"
 tuish_motion_enter intro
 tuish_actor_get intro phase
 assert_eq "$TUISH_ACTOR_VALUE" running "enter starts timeline"
