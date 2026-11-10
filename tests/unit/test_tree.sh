@@ -35,7 +35,7 @@ assert_eq "$TUISH_ACTOR_VALUE" main "selection uses stable node ID"
 assert_eq "$TREE_EVENT" 'main:files' "select callback receives selected ID"
 tuish_tree_move files -1
 tuish_actor_get files selected_id
-assert_eq "$TUISH_ACTOR_VALUE" lib "keyboard navigation moves to previous visible node"
+assert_eq "$TUISH_ACTOR_VALUE" src "keyboard navigation moves to previous visible node"
 
 tuish_tree_select files main
 tuish_tree_toggle files src
