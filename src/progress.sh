@@ -20,7 +20,7 @@ tuish_progress_create () {
 tuish_progress_set () {
 	local _id=$1 _percent=$2
 	case "$_percent" in ''|*[!0-9-]*) return 2;; esac
-	case "$_percent" in *-*) test "$_percent" = -* && _tuish_actor_is_uint "${_percent#-}" || return 2;; esac
+	case "$_percent" in -[0-9]*) _tuish_actor_is_uint "${_percent#-}" || return 2;; *-*) return 2;; esac
 	test "$_percent" -lt 0 && _percent=0
 	test "$_percent" -gt 100 && _percent=100
 	tuish_actor_action "$_id" set "$_percent"
