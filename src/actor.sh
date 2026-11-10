@@ -228,7 +228,7 @@ tuish_actor_action () {
 				render) command -v tuish_tree_render >/dev/null 2>&1 && tuish_tree_render "$_id" || return 2;;
 				*) return 2;;
 			esac;;
-		split-view) test "$_action" = ratio && _tuish_actor_is_uint "$_value" && test "$_value" -ge 1 && test "$_value" -le 99 || return 2; tuish_actor_set "$_id" split_ratio "$_value";;
+		split-view) test "$_action" = ratio || return 2; command -v tuish_split_view_set_ratio >/dev/null 2>&1 || return 2; tuish_split_view_set_ratio "$_id" "$_value";;
 		text-input|text-area|code-editor) case "$_action" in input|replace) tuish_actor_set "$_id" value "$_value";; *) return 2;; esac;;
 		viewport) test "$_action" = scroll || return 2; tuish_actor_step "$_id" scroll "$_value";;
 		spinner) test "$_action" = tick || return 2; tuish_actor_get "$_id" frame_index || :; _value=$(( ${TUISH_ACTOR_VALUE:-0} + 1 )); tuish_actor_set "$_id" frame_index "$_value";;
