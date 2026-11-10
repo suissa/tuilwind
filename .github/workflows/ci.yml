@@ -6,64 +6,54 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'feat/**']
+  workflow_dispatch:
   pull_request:
     branches: [main]
 
 jobs:
   lint:
     runs-on: ubuntu-latest
-
     name: lint (sh -n)
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Install shells
         run: |
           sudo apt-get update
           sudo apt-get install -y zsh ksh mksh busybox
-
       - name: Syntax-check every script under all shells
         run: |
           status=0
           for shell in bash zsh ksh mksh 'busybox sh'; do
             echo "=== $shell -n ==="
-            # -n1: sh -n reads only its FIRST file arg (the rest become $1, $2…),
-            # so each script must be checked individually.
-            find src examples -name '*.sh' -print0 \
-              | xargs -0 -n1 $shell -n || status=1
+            find src examples tests -name '*.sh' -print0 | xargs -0 -n1 $shell -n || status=1
           done
           exit $status
 
   test:
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       matrix:
         shell: [bash, zsh, ksh, mksh, busybox-sh]
         suite: [unit, integration]
-
     name: ${{ matrix.suite }} (${{ matrix.shell }})
-
     steps:
       - uses: actions/checkout@v4
-
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ${{
-            matrix.suite == 'integration' && 'tmux' || '' }}
+          sudo apt-get install -y ${{ matrix.suite == 'integration' && 'tmux' || '' }}
           case "${{ matrix.shell }}" in
             bash) ;;
             *) sudo apt-get install -y ${{ matrix.shell == 'busybox-sh' && 'busybox' || matrix.shell }} ;;
           esac
-
-      - name: Run tests
+      - name: Run existing test suite
         run: |
           shell="${{ matrix.shell }}"
-          case "$shell" in
-            busybox-sh) shell="busybox sh" ;;
-          esac
+          case "$shell" in busybox-sh) shell="busybox sh" ;; esac
           cd tests && bash run_tests.sh --${{ matrix.suite }} "$shell"
+      - name: Verify Actor component coverage
+        if: matrix.suite == 'unit'
+        run: |
+          grep -q 'for kind in progress slide-motion table tree split-view text-input text-area viewport spinner tabs mouse-adapter fullscreen command-launcher list help keymap cursor confirm-dialog file-picker timer paginator markdown code-editor bics-plugin bics-plugin-cli' tests/unit/test_actors.sh
