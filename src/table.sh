@@ -51,6 +51,18 @@ tuish_table_set_header () {
 	_tuish_actor_emit "$_id" data_change "header:$_col"
 }
 
+tuish_table_set_padding () {
+	local _id=$1 _padding=$2
+	_tuish_table_uint "$_padding" && test "$_padding" -le 4 || return 2
+	tuish_actor_set "$_id" padding "$_padding"
+}
+
+tuish_table_set_border_style () {
+	local _id=$1 _style=$2
+	case "$_style" in ascii|single|double|rounded|none) ;; *) return 2;; esac
+	tuish_actor_set "$_id" border_style "$_style"
+}
+
 tuish_table_set_width () {
 	local _id=$1 _col=$2 _width=$3
 	_tuish_table_uint "$_col" && _tuish_table_uint "$_width" || return 2
@@ -189,8 +201,16 @@ _tuish_table_fit () {
 		_width=$(( _width - TUISH_SWIDTH ))
 		while test "$_width" -gt 0; do _value="${_value} "; _width=$((_width - 1)); done
 	else
-		_value=${_value:0:$_width}
-		while test "${#_value}" -lt "$_width"; do _value="${_value} "; done
+		local _rest=$_value _piece=''
+		_value=''
+		while test "$_width" -gt 0 && test -n "$_rest"
+		do
+			_piece=${_rest%%"${_rest#?}"}
+			_rest=${_rest#?}
+			_value="${_value}${_piece}"
+			_width=$((_width - 1))
+		done
+		while test "$_width" -gt 0; do _value="${_value} "; _width=$((_width - 1)); done
 	fi
 	TUISH_TABLE_FIT=$_value
 }
@@ -206,7 +226,12 @@ tuish_table_render () {
 	tuish_actor_get "$_id" padding || :; _pad=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" border_style || :; _border=$TUISH_ACTOR_VALUE
 	test "$_pad" -ge 0 && test "$_pad" -le 4 || _pad=1
-	case "$_border" in none) _border='';; *) _border='|';; esac
+	case "$_border" in
+		none) _border='';;
+		double) _border='║';;
+		rounded|single) _border='│';;
+		*) _border='|';;
+	esac
 	if test "$_rows" -eq 0; then printf '%s\n' "$_empty"; _tuish_actor_emit "$_id" render "$_empty"; return; fi
 	_line=''
 	_c=1
