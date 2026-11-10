@@ -21,6 +21,6 @@ Source `compositor.sh` after `cellbuf.sh` and `draw.sh`.
 - `tuish_compositor_remove BUFFER` removes it.
 - `tuish_compositor_clear` removes every layer.
 - `tuish_compositor_compose TARGET` clears TARGET and composites registered layers in ascending z-order. Higher z values cover lower ones; equal z values preserve registration order.
-- `tuish_compositor_render BUFFER` paints populated cells through `tuish_draw_text`, applying stored SGR attributes and resetting them after each styled cell.
+- `tuish_compositor_render BUFFER` paints populated cells through `tuish_draw_text`. SGR attributes are forwarded as `attrs=...`; `tuish_text` combines them with foreground/background colors and resets the complete style after printing.
 
 The implementation uses portable shell strings and sparse records: no associative arrays, external processes or new terminal escape handling. Composition is intentionally separate from rendering, so tests and applications can inspect the finished frame before writing it to the terminal.
