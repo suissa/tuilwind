@@ -97,7 +97,7 @@ _tuish_actor_emit () {
 tuish_actor_send () {
 	local _id=$1 _message=${2:-}
 	case " $TUISH_ACTORS " in *" $_id "*) ;; *) return 1;; esac
-	_tuish_actor_get "$_id" lifecycle
+	tuish_actor_get "$_id" lifecycle
 	test "$TUISH_ACTOR_VALUE" = destroyed && return 1
 	_tuish_actor_emit "$_id" message "$_message"
 }
