@@ -20,4 +20,4 @@ tuish_theme_use mono
 assert_eq "$TUISH_THEME_NAME" mono "mono theme"
 tuish_theme_use invalid && _rc=0 || _rc=$?
 assert_eq "$_rc" 2 "unknown theme rejected"
-print_summary
+test_summary
