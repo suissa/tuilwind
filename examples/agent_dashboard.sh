@@ -32,7 +32,11 @@ _dash_agent_pid () {
 }
 _dash_agent_start () {
 	( trap 'exit 0' TERM INT; while :; do sleep 2; done ) >/dev/null 2>&1 &
-	case "$1" in 0) _DASH_PID_0=$!;; 1) _DASH_PID_1=$!;; 2) _DASH_PID_2=$!;; esac
+	case "$1" in
+		0) _DASH_PID_0=$!; tuish_actor_start api_worker;;
+		1) _DASH_PID_1=$!; tuish_actor_start queue_consumer;;
+		2) _DASH_PID_2=$!; tuish_actor_start scheduler;;
+	esac
 }
 _dash_agent_stop () {
 	_dash_agent_pid "$1"
@@ -85,8 +89,11 @@ _dash_render () {
 _dash_next () { _DASH_SELECTED=$(( (_DASH_SELECTED + 1) % 3 )); tuish_request_redraw; }
 _dash_prev () { _DASH_SELECTED=$(( (_DASH_SELECTED + 2) % 3 )); tuish_request_redraw; }
 _dash_refresh () { tuish_request_redraw; }
-_dash_quit () { tuish_quit; }
+_dash_quit () { _dash_cleanup; tuish_quit; }
 
+tuish_actor_create api_worker command-launcher
+tuish_actor_create queue_consumer command-launcher
+tuish_actor_create scheduler timer
 _dash_agent_start 0
 _dash_agent_start 1
 _dash_agent_start 2
