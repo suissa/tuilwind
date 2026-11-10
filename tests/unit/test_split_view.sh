@@ -59,7 +59,7 @@ _status=0
 tuish_split_view_focus layout missing || _status=$?
 assert_eq "$_status" 4 'unknown pane focus is rejected'
 
-tuish_split_view_pointer layout 60 5
+tuish_split_view_pointer layout 20 5
 assert_eq "$TUISH_SPLIT_VIEW_HIT" navigation 'pointer hit-testing resolves first pane'
 tuish_split_view_pointer layout 60 5
 assert_eq "$_SPLIT_EVENT" 'navigation:layout' 'pointer focus emits focus callback'
