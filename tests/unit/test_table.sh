@@ -95,6 +95,8 @@ assert_eq "$_status" 2 "out-of-range row update rejected"
 _status=0
 tuish_table_set_row inventory 1 unsafe 'bad|cell' 2 Ready || _status=$?
 assert_eq "$_status" 2 "record separator in cell rejected"
+tuish_actor_get inventory row_key_1
+assert_eq "$TUISH_ACTOR_VALUE" sku-b "invalid row update leaves existing key unchanged"
 _status=0
 tuish_table_resize inventory 0 || _status=$?
 assert_eq "$_status" 2 "zero visible rows rejected"
