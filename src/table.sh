@@ -37,15 +37,15 @@ tuish_table_create () {
 	tuish_actor_set "$_id" padding 1 || return
 	tuish_actor_set "$_id" empty_label '(no rows)' || return
 	tuish_actor_set "$_id" selection_enabled 1 || return
-	for _i in $(seq 1 "$_cols" 2>/dev/null); do tuish_actor_set "$_id" "width_$_i" 12 || return; done
-	# seq is not guaranteed by POSIX; reset widths using shell arithmetic.
 	_i=1
 	while test "$_i" -le "$_cols"; do tuish_actor_set "$_id" "width_$_i" 12 || return; _i=$((_i + 1)); done
 }
 
 tuish_table_set_header () {
-	local _id=$1 _col=$2 _value=$3
-	_tuish_table_bounds "$_id" 1 "$_col" || return
+	local _id=$1 _col=$2 _value=$3 _cols
+	_tuish_table_uint "$_col" || return 2
+	tuish_actor_get "$_id" column_count || return; _cols=$TUISH_ACTOR_VALUE
+	test "$_col" -ge 1 && test "$_col" -le "$_cols" || return 2
 	_tuish_actor_valid_value "$_value" || return 2
 	tuish_actor_set "$_id" "header_$_col" "$_value" || return
 	_tuish_actor_emit "$_id" data_change "header:$_col"
