@@ -56,7 +56,16 @@ tuish_split_view_add_pane () {
   tuish_actor_set "$_view" pane_ids "${_ids:+$_ids }$_pane" || return
   _count=$((_count + 1))
   tuish_actor_set "$_view" pane_count "$_count" || return
-  if test "$_count" -eq 1; then tuish_actor_set "$_view" active_pane "$_pane" || return; fi
+  if test "$_count" -eq 1; then
+    tuish_actor_set "$_view" active_pane "$_pane" || return
+  else
+    tuish_split_view_layout "$_view" >/dev/null || {
+      tuish_actor_set "$_view" pane_ids "$_ids"
+      tuish_actor_set "$_view" pane_count 1
+      tuish_actor_set "$_view" "pane_active_$_pane" 0
+      return 2
+    }
+  fi
   _tuish_actor_emit "$_view" data_change "$_pane"
 }
 
@@ -120,15 +129,20 @@ tuish_split_view_focus () {
 }
 
 tuish_split_view_pointer () {
-  local _view=$1 _x=$2 _y=$3 _geometry _line _pane _r _c _w _h
+  local _view=$1 _x=$2 _y=$3 _geometry _record _pane _r _c _w _h _rest
   _tuish_split_uint "$_x" && test "$_x" -ge 1 || return 2
   _tuish_split_uint "$_y" && test "$_y" -ge 1 || return 2
   tuish_split_view_layout "$_view" >/dev/null || return
   tuish_actor_get "$_view" geometry || return
   _geometry=$TUISH_ACTOR_VALUE
-  while IFS='|' read -r _pane _r _c _w _h
+  while test -n "$_geometry"
   do
-    test -n "$_pane" || continue
+    _record=${_geometry%%;*}
+    case "$_geometry" in *';'*) _geometry=${_geometry#*;};; *) _geometry='';; esac
+    _pane=${_record%%,*}; _rest=${_record#*,}
+    _r=${_rest%%,*}; _rest=${_rest#*,}
+    _c=${_rest%%,*}; _rest=${_rest#*,}
+    _w=${_rest%%,*}; _h=${_rest#*,}
     if test "$_x" -ge "$_c" && test "$_x" -lt "$((_c + _w))" &&
        test "$_y" -ge "$_r" && test "$_y" -lt "$((_r + _h))"
     then
@@ -137,9 +151,7 @@ tuish_split_view_pointer () {
       TUISH_SPLIT_VIEW_HIT=$_pane
       return 0
     fi
-  done <<EOF
-$_geometry
-EOF
+  done
   TUISH_SPLIT_VIEW_HIT=''
   return 1
 }
@@ -164,7 +176,7 @@ tuish_split_view_child_exit () {
 # Horizontal means side-by-side; vertical means stacked.
 tuish_split_view_layout () {
   local _view=$1 _direction _width _height _ratio _gap _first_min _second_min
-  local _ids _count _first _second _available _total _row2=1 _col2=1 _w1 _h1 _w2 _h2 _geom='' _pane1 _pane2
+  local _ids _count _first _second _available _total _row2=1 _col2=1 _w1 _h1 _w2 _h2 _geom='' _pane1 _pane2 _record
   tuish_actor_get "$_view" direction || return 1; _direction=$TUISH_ACTOR_VALUE
   tuish_actor_get "$_view" width || return; _width=$TUISH_ACTOR_VALUE
   tuish_actor_get "$_view" height || return; _height=$TUISH_ACTOR_VALUE
@@ -179,7 +191,7 @@ tuish_split_view_layout () {
   _pane1=$1
   if test "$_count" -eq 1
   then
-    _geom="$_pane1|1|1|$_width|$_height"
+    _geom="$_pane1,1,1,$_width,$_height"
   else
     _pane2=$2
     if test "$_direction" = horizontal; then _total=$_width; else _total=$_height; fi
@@ -195,31 +207,45 @@ tuish_split_view_layout () {
     else
       _w1=$_width; _h1=$_first; _w2=$_width; _h2=$_second; _row2=$((_first + _gap + 1))
     fi
-    _geom="$_pane1|1|1|$_w1|$_h1
-$_pane2|$_row2|$_col2|$_w2|$_h2"
+    _geom="$_pane1,1,1,$_w1,$_h1;$_pane2,$_row2,$_col2,$_w2,$_h2"
   fi
   tuish_actor_set "$_view" geometry "$_geom" || return
-  TUISH_SPLIT_VIEW_GEOMETRY=$_geom
+  TUISH_SPLIT_VIEW_GEOMETRY=''
+  _rest=$_geom
+  while test -n "$_rest"
+  do
+    _record=${_rest%%;*}
+    case "$_rest" in *';'*) _rest=${_rest#*;};; *) _rest='';; esac
+    _pane1=${_record%%,*}; _record=${_record#*,}
+    _row2=${_record%%,*}; _record=${_record#*,}
+    _col2=${_record%%,*}; _record=${_record#*,}
+    _w1=${_record%%,*}; _h1=${_record#*,}
+    TUISH_SPLIT_VIEW_GEOMETRY="${TUISH_SPLIT_VIEW_GEOMETRY}${TUISH_SPLIT_VIEW_GEOMETRY:+
+}${_pane1}|${_row2}|${_col2}|${_w1}|${_h1}"
+    printf '%s|%s|%s|%s|%s\n' "$_pane1" "$_row2" "$_col2" "$_w1" "$_h1"
+  done
   _tuish_actor_emit "$_view" render "$_geom"
-  printf '%s\n' "$_geom"
 }
 
 tuish_split_view_render () {
-  local _view=$1 _geometry _line _pane _row _col _width _height _active _label _out=''
+  local _view=$1 _geometry _record _pane _row _col _width _height _active _label _out=''
   tuish_split_view_layout "$_view" >/dev/null || return
   tuish_actor_get "$_view" geometry || return; _geometry=$TUISH_ACTOR_VALUE
   tuish_actor_get "$_view" active_pane || :; _active=$TUISH_ACTOR_VALUE
-  while IFS='|' read -r _pane _row _col _width _height
+  while test -n "$_geometry"
   do
-    test -n "$_pane" || continue
+    _record=${_geometry%%;*}
+    case "$_geometry" in *';'*) _geometry=${_geometry#*;};; *) _geometry='';; esac
+    _pane=${_record%%,*}; _record=${_record#*,}
+    _row=${_record%%,*}; _record=${_record#*,}
+    _col=${_record%%,*}; _record=${_record#*,}
+    _width=${_record%%,*}; _height=${_record#*,}
     tuish_actor_get "$_view" "pane_label_$_pane" || :; _label=$TUISH_ACTOR_VALUE
-    _out="${_out}${_pane} ${_row},${_col} ${_width}x${_height}${_pane:+}"
+    _out="${_out}${_pane} ${_row},${_col} ${_width}x${_height}"
     test "$_pane" = "$_active" && _out="${_out} [active]"
     _out="${_out}\n"
     test -n "$_label" && :
-  done <<EOF
-$_geometry
-EOF
+  done
   printf '%s' "$_out"
 }
 
