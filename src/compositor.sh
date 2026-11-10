@@ -89,19 +89,16 @@ tuish_compositor_render () {
     _co_glyph=${_co_line%%|*}; _co_line=${_co_line#*|}
     _co_fg=${_co_line%%|*}; _co_line=${_co_line#*|}
     _co_bg=${_co_line%%|*}; _co_attrs=${_co_line#*|}
-    # attrs stores a validated SGR parameter list (for example, 1;4 for bold + underline).
-    # Apply it before text placement so term.sh can combine it with foreground/background.
-    if test -n "$_co_attrs"; then tuish_sgr "$_co_attrs"; fi
+    # term.sh combines attrs and colors into one text style and resets it afterwards.
     if test -n "$_co_fg" && test -n "$_co_bg"; then
-      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" fg="$_co_fg" bg="$_co_bg"
+      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" fg="$_co_fg" attrs="$_co_attrs" bg="$_co_bg" attrs="$_co_attrs"
     elif test -n "$_co_fg"; then
       tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" fg="$_co_fg"
     elif test -n "$_co_bg"; then
-      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" bg="$_co_bg"
+      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" bg="$_co_bg" attrs="$_co_attrs"
     else
-      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph"
+      tuish_draw_text "$_co_row" "$_co_col" "$_co_glyph" attrs="$_co_attrs"
     fi
-    if test -n "$_co_attrs"; then tuish_sgr_reset; fi
   done <<EOF
 $TUISH_CELLBUF_CELLS
 EOF
