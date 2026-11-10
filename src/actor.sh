@@ -175,3 +175,34 @@ tuish_actor_render_text () {
 	esac
 	printf '%s%s%s' "$_label" "${_label:+: }" "$_value"
 }
+
+# Domain actions give every registered component a meaningful state transition.
+# Rendering and device integration continue to use the existing tuilwind modules.
+tuish_actor_action () {
+	local _id=$1 _action=$2 _value=${3:-} _kind
+	tuish_actor_kind "$_id" || return 1
+	_kind=$TUISH_ACTOR_KIND
+	case "$_kind" in
+		progress) test "$_action" = set || return 2; tuish_actor_step "$_id" progress "$_value";;
+		slide-motion) test "$_action" = seek && test "$_value" -ge 0 || return 2; tuish_actor_set "$_id" current_frame "$_value";;
+		table|list|tabs|command-launcher) case "$_action" in select) tuish_actor_step "$_id" select "$_value";; filter) tuish_actor_set "$_id" filter "$_value";; *) return 2;; esac;;
+		tree) test "$_action" = toggle || return 2; tuish_actor_step "$_id" toggle;;
+		split-view) test "$_action" = ratio && test "$_value" -ge 1 && test "$_value" -le 99 || return 2; tuish_actor_set "$_id" split_ratio "$_value";;
+		text-input|text-area|code-editor) case "$_action" in input|replace) tuish_actor_set "$_id" value "$_value";; *) return 2;; esac;;
+		viewport) test "$_action" = scroll || return 2; tuish_actor_step "$_id" scroll "$_value";;
+		spinner) test "$_action" = tick || return 2; tuish_actor_get "$_id" frame_index || :; _value=$(( ${TUISH_ACTOR_VALUE:-0} + 1 )); tuish_actor_set "$_id" frame_index "$_value";;
+		mouse-adapter) test "$_action" = position || return 2; tuish_actor_set "$_id" pointer "$_value";;
+		fullscreen) case "$_action" in enter) tuish_actor_start "$_id"; tuish_actor_set "$_id" active 1;; exit) tuish_actor_stop "$_id"; tuish_actor_set "$_id" active 0;; *) return 2;; esac;;
+		help) test "$_action" = toggle || return 2; tuish_actor_step "$_id" toggle;;
+		keymap) test "$_action" = bind || return 2; tuish_actor_set "$_id" binding "$_value";;
+		cursor) test "$_action" = move || return 2; tuish_actor_set "$_id" position "$_value";;
+		confirm-dialog) case "$_action" in confirm|cancel) tuish_actor_step "$_id" "$_action";; *) return 2;; esac;;
+		file-picker) case "$_action" in navigate) tuish_actor_set "$_id" path "$_value";; filter) tuish_actor_set "$_id" filter "$_value";; *) return 2;; esac;;
+		timer) test "$_action" = tick && test "$_value" -ge 0 || return 2; tuish_actor_get "$_id" remaining_ms || :; _value=$(( ${TUISH_ACTOR_VALUE:-0} - _value )); test "$_value" -ge 0 || _value=0; tuish_actor_set "$_id" remaining_ms "$_value";;
+		paginator) case "$_action" in next|previous) tuish_actor_get "$_id" page || :; _value=${TUISH_ACTOR_VALUE:-0}; test "$_action" = next && _value=$((_value + 1)); test "$_action" = previous && _value=$((_value - 1)); test "$_value" -ge 0 || _value=0; tuish_actor_set "$_id" page "$_value";; *) return 2;; esac;;
+		markdown) test "$_action" = source || return 2; tuish_actor_set "$_id" source "$_value";;
+		bics-plugin) case "$_action" in register) tuish_actor_set "$_id" plugin_state registered;; reload) tuish_actor_set "$_id" plugin_state reloaded;; *) return 2;; esac;;
+		bics-plugin-cli) case "$_action" in scaffold|validate|reload|remove) tuish_actor_set "$_id" cli_action "$_action";; *) return 2;; esac;;
+		*) return 2;;
+	esac
+}
