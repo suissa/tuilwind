@@ -38,7 +38,7 @@ _dash_agent_stop () {
 	_dash_agent_pid "$1"
 	if test -n "$TUISH_AGENT_PID"
 	then kill "$TUISH_AGENT_PID" 2>/dev/null || :; wait "$TUISH_AGENT_PID" 2>/dev/null || :; fi
-	case "$1" in 0) _DASH_PID_0='';; 1) _DASH_PID_1='';; 2) _DASH_PID_2='';; esac
+	case "$1" in 0) _DASH_PID_0=''; tuish_actor_stop api_worker;; 1) _DASH_PID_1=''; tuish_actor_stop queue_consumer;; 2) _DASH_PID_2=''; tuish_actor_stop scheduler;; esac
 }
 _dash_agent_toggle () {
 	_dash_agent_pid "$_DASH_SELECTED"
