@@ -219,7 +219,8 @@ tuish_actor_action () {
 		tree)
 			case "$_action" in
 				toggle) if command -v tuish_tree_toggle >/dev/null 2>&1; then tuish_tree_toggle "$_id" "$_value"; else tuish_actor_step "$_id" toggle; fi;;
-				expand|collapse) command -v tuish_tree_toggle >/dev/null 2>&1 && tuish_tree_toggle "$_id" "$_value" || return 2;;
+				expand) command -v tuish_tree_expand >/dev/null 2>&1 && tuish_tree_expand "$_id" "$_value" || return 2;;
+				collapse) command -v tuish_tree_collapse >/dev/null 2>&1 && tuish_tree_collapse "$_id" "$_value" || return 2;;
 				select) command -v tuish_tree_select >/dev/null 2>&1 && tuish_tree_select "$_id" "$_value" || return 2;;
 				next) command -v tuish_tree_move >/dev/null 2>&1 && tuish_tree_move "$_id" 1 || return 2;;
 				previous) command -v tuish_tree_move >/dev/null 2>&1 && tuish_tree_move "$_id" -1 || return 2;;
