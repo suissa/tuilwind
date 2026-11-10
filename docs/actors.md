@@ -9,7 +9,7 @@ The Actor layer is an optional module: source `compat.sh`, `ord.sh`, and `tui.sh
 - `tuish_actor_on ID EVENT FUNCTION`: register a named callback.
 - `tuish_actor_send ID MESSAGE`: deliver a message synchronously to the Actor callback.
 - `tuish_actor_start ID`, `tuish_actor_stop ID`, `tuish_actor_destroy ID`: lifecycle.
-- `tuish_actor_step ID ACTION [VALUE]`: shared state transitions for selection, progress, expansion, scrolling, confirmation and cancellation.
+- `tuish_actor_step ID ACTION [VALUE]`: shared state transitions for selection, progress, expansion, scrolling, confirmation and cancellation.\n- `tuish_actor_action ID ACTION [VALUE]`: type-checked domain actions for each component (e.g. `seek`, `ratio`, `input`, `scroll`, `tick`, `navigate`, `source`, `register`, `validate`).
 - `tuish_actor_render_text ID [LABEL]`: minimal text representation; use the existing drawing primitives for full layouts.
 
 Actor IDs and property keys are restricted to shell-safe identifiers. Property values cannot contain a newline or the record separator `|`; this prevents malformed registry records and avoids evaluating user-provided data as shell code. Callbacks are function names, never source strings.
