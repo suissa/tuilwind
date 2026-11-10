@@ -60,7 +60,7 @@ tuish_tree_add_node () {
 	tuish_actor_set "$_tree" "node_expanded_$_node" 0 || return
 	tuish_actor_set "$_tree" node_ids "$_ids $_node" || return
 	_tuish_tree_rebuild_visible "$_tree" || return
-	tuish_actor_emit "$_tree" data_change "$_node"
+	_tuish_actor_emit "$_tree" data_change "$_node"
 }
 
 tuish_tree_set_label () {
@@ -68,7 +68,7 @@ tuish_tree_set_label () {
 	_tuish_tree_has_node "$_tree" "$_node" || return 4
 	tuish_actor_valid_value "$_label" || return 2
 	tuish_actor_set "$_tree" "node_label_$_node" "$_label" || return
-	tuish_actor_emit "$_tree" data_change "$_node"
+	_tuish_actor_emit "$_tree" data_change "$_node"
 }
 
 # Reparenting checks ancestry before committing, preventing self-links and cycles.
@@ -123,7 +123,7 @@ _tuish_tree_walk () {
 }
 
 _tuish_tree_rebuild_visible () {
-	local _tree=$1 _root _all _selected _found=0 _i=1 _visible _offset
+	local _tree=$1 _root _all _selected _found=0 _i=1 _visible _offset _node
 	tuish_actor_get "$_tree" root_node || return; _root=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_tree" selected_id || :; _selected=$TUISH_ACTOR_VALUE
 	_tuish_tree_visible_ids=''
@@ -169,7 +169,7 @@ tuish_tree_select () {
 			tuish_actor_set "$_tree" selected_id "$_node" || return
 			tuish_actor_set "$_tree" cursor "$_index" || return
 			_tuish_tree_sync_view "$_tree"
-			tuish_actor_emit "$_tree" select "$_node"
+			_tuish_actor_emit "$_tree" select "$_node"
 			return 0
 		fi
 		_index=$((_index + 1))
@@ -192,7 +192,7 @@ tuish_tree_move () {
 	_node=$1
 	_tuish_tree_select "$_tree" "$_node"
 	_tuish_tree_sync_view "$_tree"
-	tuish_actor_emit "$_tree" navigate "$_node"
+	_tuish_actor_emit "$_tree" navigate "$_node"
 }
 
 tuish_tree_toggle () {
@@ -203,13 +203,13 @@ tuish_tree_toggle () {
 	if test "$_expanded" = 1; then
 		tuish_actor_set "$_tree" "node_expanded_$_node" 0 || return
 		_tuish_tree_rebuild_visible "$_tree" || return
-		tuish_actor_emit "$_tree" collapse "$_node"
+		_tuish_actor_emit "$_tree" collapse "$_node"
 	else
 		tuish_actor_set "$_tree" "node_expanded_$_node" 1 || return
 		_tuish_tree_rebuild_visible "$_tree" || return
-		tuish_actor_emit "$_tree" expand "$_node"
+		_tuish_actor_emit "$_tree" expand "$_node"
 	fi
-	tuish_actor_emit "$_tree" toggle "$_node"
+	_tuish_actor_emit "$_tree" toggle "$_node"
 }
 
 tuish_tree_resize () {
@@ -217,11 +217,11 @@ tuish_tree_resize () {
 	_tuish_tree_uint "$_rows" && test "$_rows" -ge 1 && test "$_rows" -le 10000 || return 2
 	tuish_actor_set "$_tree" visible_rows "$_rows" || return
 	_tuish_tree_sync_view "$_tree" || return
-	tuish_actor_emit "$_tree" resize "$_rows"
+	_tuish_actor_emit "$_tree" resize "$_rows"
 }
 
 tuish_tree_render () {
-	local _tree=$1 _all _offset _visible _line=1 _item _selected _indent _width _out='' _ids _parent _node _spaces _label _expanded _marker _prefix _ids _parent _node _spaces _label _expanded _marker _prefix
+	local _tree=$1 _all _offset _visible _line=1 _item _selected _indent _width _out='' _ids _parent _node _spaces _label _expanded _marker _prefix
 	_tuish_tree_rebuild_visible "$_tree" || return
 	tuish_actor_get "$_tree" visible_ids || return; _all=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_tree" viewport_offset || return; _offset=$TUISH_ACTOR_VALUE
@@ -251,7 +251,7 @@ tuish_tree_render () {
 		_line=$((_line + 1))
 	done
 	printf '%s' "$_out"
-	tuish_actor_emit "$_tree" render "$_selected"
+	_tuish_actor_emit "$_tree" render "$_selected"
 }
 
 tuish_tree_expand () {
@@ -260,7 +260,7 @@ tuish_tree_expand () {
 	_tuish_tree_has_node "$_tree" "$_node" || return 4
 	tuish_actor_set "$_tree" "node_expanded_$_node" 1 || return
 	_tuish_tree_rebuild_visible "$_tree" || return
-	_tuish_actor_emit "$_tree" expand "$_node"
+	__tuish_actor_emit "$_tree" expand "$_node"
 }
 
 tuish_tree_collapse () {
@@ -269,5 +269,5 @@ tuish_tree_collapse () {
 	_tuish_tree_has_node "$_tree" "$_node" || return 4
 	tuish_actor_set "$_tree" "node_expanded_$_node" 0 || return
 	_tuish_tree_rebuild_visible "$_tree" || return
-	_tuish_actor_emit "$_tree" collapse "$_node"
+	__tuish_actor_emit "$_tree" collapse "$_node"
 }
