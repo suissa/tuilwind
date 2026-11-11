@@ -1,34 +1,33 @@
-# Actor runtime and component catalog
+# Actor runtime and Elm/MVU message broker
 
-The Actor layer is an optional module: source `compat.sh`, `ord.sh`, and `tui.sh`, then source `actor.sh`. It does not start a second event loop and does not fork processes. Actors are records in a process-local registry; the existing `event.sh` and `host.sh` remain the event and composition owners.
+The Actor layer is an optional module: source `compat.sh`, `ord.sh`, and `tui.sh`, then source `actor.sh`. It does not start a second event loop and does not fork processes. Actors are process-local records; the existing `event.sh` and `host.sh` remain the event-loop and composition owners.
 
 ## Runtime API
 
-- `tuish_actor_create ID TYPE [PARENT]`: register a component and initialize lifecycle state.
+- `tuish_actor_create ID TYPE [PARENT]`: register an Actor and initialize lifecycle state.
 - `tuish_actor_set ID KEY VALUE` / `tuish_actor_get ID KEY`: access validated properties. Read values from `TUISH_ACTOR_VALUE`.
-- `tuish_actor_on ID EVENT FUNCTION`: register a named callback.
-- `tuish_actor_send ID MESSAGE`: deliver a message synchronously to the Actor callback.
-- `tuish_actor_start ID`, `tuish_actor_stop ID`, `tuish_actor_destroy ID`: lifecycle.
-- `tuish_actor_step ID ACTION [VALUE]`: shared state transitions for selection, progress, expansion, scrolling, confirmation and cancellation.
-- `tuish_actor_action ID ACTION [VALUE]`: type-checked domain actions for each component (e.g. SlideMotion `seek`, `advance`, `enter`, `wait`, `resume`, `exit`, `finish`, `cancel`; plus `ratio`, `input`, `scroll`, `tick`, `navigate`, `source`, `register` and `validate`).
-- `tuish_actor_render_text ID [LABEL]`: minimal text representation; use the existing drawing primitives for full layouts.
+- `tuish_actor_on ID EVENT FUNCTION`: register a named callback. Callbacks are function names, never evaluated source.
+- `tuish_actor_program ID MESSAGE UPDATE VIEW EFFECT [CHILD_MESSAGE] [INIT] [SHUTDOWN]`: register the Elm/MVU behavior callbacks.
+- `tuish_actor_post ID MSG`: append a message to the process-wide FIFO mailbox without dispatching.
+- `tuish_actor_send ID MSG`: append and synchronously drain the FIFO mailbox.
+- `tuish_actor_dispatch`: drain queued messages. Dispatch is non-reentrant; messages posted by a callback are appended and processed after the current message. The configurable `TUISH_ACTOR_DISPATCH_LIMIT` (default 256) bounds a drain; status 75 means work remains and a later dispatch can continue it.
+- `tuish_actor_send_child CHILD MSG`: send a child-originated message to its registered parent through `on_child_message`.
+- `tuish_actor_cmd ID EFFECT`: enqueue an effect descriptor. Effects run after the current update via `on_effect`; they are data, not shell source.
+- `tuish_actor_render ID [ARG]`: invoke the view callback separately from update.
+- `tuish_actor_start ID`, `tuish_actor_stop ID`, `tuish_actor_destroy ID`: lifecycle operations.
 
-Actor IDs and property keys are restricted to shell-safe identifiers. Property values cannot contain a newline or the record separator `|`; this prevents malformed registry records and avoids evaluating user-provided data as shell code. Callbacks are function names, never source strings.
+The message flow is `Event → Msg → Update(state) → View(render) → Cmd(effects)`. Message and update callbacks receive `ACTOR_ID MESSAGE`; view and effect callbacks receive `ACTOR_ID ARG`; the child-message callback receives `PARENT_ID CHILD_ID|MESSAGE`. Init and shutdown callbacks receive the Actor ID. Update logic is application-owned and should remain deterministic; I/O belongs in the effect callback. The view callback is invoked by the app's existing redraw handler, not automatically by the broker.
 
-## Component types
+Messages/effect descriptors cannot contain newlines or the record separator `|`. Actor IDs and property keys are restricted to shell-safe identifiers. This keeps the in-memory protocol parseable and prevents user data from becoming shell code.
 
-The runtime recognizes the components tracked by the project issues: progress, slide-motion, table, tree, split-view, text-input, text-area, viewport, spinner, tabs, mouse-adapter, fullscreen, command-launcher, list, help, keymap, cursor, confirm-dialog, file-picker, timer, paginator, markdown, code-editor, bics-plugin and bics-plugin-cli. Each component can own arbitrary validated properties and callbacks while using the common lifecycle and state transition contract. Existing primitives (viewport, canvas, buffer, key bindings, HID, host and draw) remain the rendering/input implementations; the Actor layer does not duplicate them.
+## Lifecycle and terminal safety
 
-This is deliberately a foundation, not a claim that all 25 component types have bespoke rendering implementations. Component-specific rendering and input adapters can be added incrementally without changing the Actor contract.
+The Actor module does not own terminal mode. Applications should keep terminal setup and teardown in the existing `tuish_init` / `tuish_fini` lifecycle, whose EXIT and signal traps restore the saved `stty` state. Actor shutdown callbacks are invoked by `tuish_actor_destroy`; applications should use them to release Actor-owned resources, not to replace terminal restoration.
 
-The concrete component adapters are [Progress](progress.md), [SlideMotion](slide-motion.md), [Interactive Table](table.md), [Expandable Tree](tree.md) and [SplitView](split-view.md). The table adapter adds keyed row selection and bounded rendering; the tree adapter adds stable node IDs, cycle-safe parent links, expansion, keyboard navigation and viewport clipping; SplitView calculates constrained two-pane geometry, focus, pointer hit-testing and child-exit layout recovery.
+## Components
 
-## Live dashboard
+The runtime recognizes the component types tracked by the project issues: progress, slide-motion, table, tree, split-view, text-input, text-area, viewport, spinner, tabs, mouse-adapter, fullscreen, command-launcher, list, help, keymap, cursor, confirm-dialog, file-picker, timer, paginator, markdown, code-editor, bics-plugin and bics-plugin-cli. Component-specific adapters continue to use the existing drawing, canvas, buffer, HID, event and host modules.
 
-Run `sh examples/agent_dashboard.sh` in a terminal. It refreshes host, OS, uptime, load average, memory use, process count and terminal/session information, and manages three heartbeat worker processes. Use Up/Down to select an agent, Enter to start/stop it, R to redraw, and Q to exit. The worker processes are lifecycle demonstrations, not production AI agents; replace their heartbeat body with an application-owned agent command.
+## Example and tests
 
-Metrics are best-effort. Linux procfs supplies uptime, load, memory and process counts; unavailable values are shown as `n/a`. No root privileges or external monitoring service is required.
-
-## Tests and CI
-
-`tests/unit/test_actors.sh` runs through the existing unit-test glob in `.github/workflows/ci.yml`, across the shell matrix. It verifies registration, type identity, lifecycle, message delivery, selection transitions and destruction for every supported component type. The test does not assert that each component already has a bespoke renderer.
+Run `sh examples/actor_mvu_demo.sh` for a parent/child broker walkthrough. `tests/unit/test_actor_mvu.sh` verifies FIFO ordering, non-reentrant posts, effects, separate view dispatch, child-to-parent delivery, lifecycle callbacks and message validation. The normal unit-test glob includes it in the existing shell matrix.
