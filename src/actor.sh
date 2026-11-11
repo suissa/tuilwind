@@ -70,8 +70,14 @@ tuish_actor_create () {
 		test "$_parent" != "$_id" || return 2
 	fi
 	TUISH_ACTORS="${TUISH_ACTORS:+$TUISH_ACTORS }$_id"
+	_tuish_actor_put "$_id" actor_id "$_id" || return
 	_tuish_actor_put "$_id" kind "$_kind" || return
 	_tuish_actor_put "$_id" parent "$_parent" || return
+	_tuish_actor_put "$_id" parent_id "$_parent" || return
+	_tuish_actor_put "$_id" state '' || return
+	_tuish_actor_put "$_id" subscriptions '' || return
+	_tuish_actor_put "$_id" render_region '' || return
+	_tuish_actor_put "$_id" mailbox_count 0 || return
 	_tuish_actor_put "$_id" lifecycle created || return
 	_tuish_actor_put "$_id" selected_index 0 || return
 	_tuish_actor_put "$_id" value '' || return
@@ -262,13 +268,18 @@ TUISH_ACTOR_SEQUENCE=0
 TUISH_ACTOR_MESSAGE=''
 
 _tuish_actor_enqueue () {
-	local _id=$1 _message=$2
+	local _id=$1 _message=$2 _count
 	_tuish_actor_valid_name "$_id" || return 2
 	_tuish_actor_valid_value "$_message" || return 2
 	_tuish_actor_exists "$_id" || return 1
 	tuish_actor_get "$_id" lifecycle || return 1
 	test "$TUISH_ACTOR_VALUE" != destroyed || return 1
+	tuish_actor_get "$_id" mailbox_count || :
+	_count=${TUISH_ACTOR_VALUE:-0}
+	_tuish_actor_is_uint "$_count" || return 2
 	_tuish_actor_sequence=$((_tuish_actor_sequence + 1))
+	TUISH_ACTOR_SEQUENCE=$_tuish_actor_sequence
+	tuish_actor_set "$_id" mailbox_count "$((_count + 1))" || return
 	_tuish_actor_mailbox="${_tuish_actor_mailbox}${_tuish_actor_sequence}|$_id|$_message
 "
 }
@@ -333,13 +344,17 @@ tuish_actor_dispatch () {
 		TUISH_ACTOR_MESSAGE=$_message
 		_processed=$((_processed + 1))
 		if _tuish_actor_exists "$_id"; then
+			tuish_actor_get "$_id" mailbox_count || :
+			_line=${TUISH_ACTOR_VALUE:-0}
+			_tuish_actor_is_uint "$_line" && test "$_line" -gt 0 && tuish_actor_set "$_id" mailbox_count "$((_line - 1))"
 			tuish_actor_get "$_id" lifecycle || :
 			if test "$TUISH_ACTOR_VALUE" != destroyed; then
 				case "$_message" in
 					child:*)
 						_line=${_message#child:}
 						_child=${_line%%:*}; _payload=${_line#*:}
-						_tuish_actor_emit "$_id" child_message "$_child|$_payload" || { _status=$?; break; } ;;
+						_tuish_actor_emit "$_id" child_message "$_child|$_payload" || { _status=$?; break; }
+						_tuish_actor_emit "$_id" update "child:$_child|$_payload" || { _status=$?; break; } ;;
 					*)
 						_tuish_actor_emit "$_id" message "$_message" || { _status=$?; break; }
 						_tuish_actor_emit "$_id" update "$_message" || { _status=$?; break; } ;;
