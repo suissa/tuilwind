@@ -95,6 +95,7 @@ _tuish_input_clean () {
 tuish_text_input_create () {
   local _id=$1 _placeholder=${2:-} _max=${3:-0} _mask=${4:-}
   _tuish_actor_valid_name "$_id" && tuish_actor_supported text-input || return 2
+  tuish_actor_valid_value "$_placeholder" && tuish_actor_valid_value "$_mask" || return 2
   _tuish_actor_is_uint "$_max" || return 2
   tuish_actor_create "$_id" text-input || return
   tuish_actor_set "$_id" value '' || return
