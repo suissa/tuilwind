@@ -27,6 +27,7 @@ assert_eq "$TUISH_ACTOR_VALUE" root 'Actor stores its stable ID'
 tuish_actor_get root parent_id
 assert_eq "$TUISH_ACTOR_VALUE" '' 'root has no parent ID'
 tuish_actor_create leaf list root
+tuish_actor_start leaf
 tuish_actor_get leaf parent_id
 assert_eq "$TUISH_ACTOR_VALUE" root 'child stores its parent ID'
 tuish_actor_program root _mvu_message _mvu_update _mvu_view _mvu_effect _mvu_child _mvu_init _mvu_shutdown
