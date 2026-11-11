@@ -87,7 +87,7 @@ is optional -- pick what you need:
 | `hl.sh`       | Generic code highlighting (standalone)          |
 | `md.sh`       | Markdown to a record stream (standalone)        |
 | `host.sh`     | Hosting several live apps in one loop           |
-| `actor.sh`    | Actor lifecycle, messages and component state   |
+| `actor.sh`    | Actor lifecycle, FIFO mailbox, Elm/MVU updates and effects |
 | `progress.sh` | Animated progress Actor component                |
 | `slide_motion.sh` | Deterministic timeline and frame scrubbing       |
 | `table.sh`     | Interactive data table Actor                     |
@@ -111,6 +111,7 @@ bash examples/canvas_demo.sh  # Two independently scrollable clipped panels
 bash examples/debug.sh        # Live event inspector
 bash examples/agent_dashboard.sh # Live host metrics and managed agent workers
 bash examples/progress_demo.sh    # Animated progress Actor
+sh examples/actor_mvu_demo.sh      # Parent/child Elm-MVU message broker
 bash examples/slide_motion_demo.sh # Timeline and frame scrubbing
 bash examples/table_demo.sh        # Interactive data table
 bash examples/tree_demo.sh         # Expandable tree navigation
