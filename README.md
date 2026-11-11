@@ -6,11 +6,13 @@ SPDX-License-Identifier: ISC
 
 # tuilwind
 
-TUI toolkit written in pure portable shell script. No compilation, no subprocesses, requires only `stty` (almost universal).
+A terminal UI toolkit written in portable shell scripts. It provides terminal lifecycle management, event handling, drawing primitives, text and layout utilities, and optional UI components. No compilation step is required.
 
 ![Demo](https://i.imgur.com/t8NZbSe.gif)
 
-## Quick Start
+## Quick start
+
+Load the core modules in dependency order, then register event handlers and start the application:
 
 ```sh
 #!/bin/sh
@@ -23,135 +25,83 @@ TUI toolkit written in pure portable shell script. No compilation, no subprocess
 . ./src/keybind.sh
 
 tuish_bind 'ctrl-w' 'tuish_quit'
-tuish_bind 'idle'   '_render'
+tuish_bind 'idle' '_render'
 
 _render () {
     tuish_vmove 1 1
-    tuish_print "Hello from tui.sh -- press Ctrl+W to quit"
+    tuish_print "Hello from tuilwind -- press Ctrl+W to quit"
 }
 
 tuish_start
 ```
 
-## Features
+## Implemented modules
 
-- **Keyboard and mouse events** with named dispatch (`ctrl-w`, `char a`,
-  `lclik`, `resize`, `idle`). VT and kitty keyboard protocols.
-- **Declarative key bindings** -- `tuish_bind EVENT ACTION`, no
-  boilerplate event handler needed.
-- **Drawing primitives** -- cursor movement, 256/truecolor, text
-  attributes, box drawing with four line styles and mixed-style junctions.
-- **Viewport modes** -- fullscreen (alternate screen), fixed (inline
-  region), and grow (streaming output).
-- **Redraw scheduling** -- `requestAnimationFrame`-style coalescing so
-  held keys don't cause lag.
-- **Unicode-aware** -- display width calculation for CJK, emoji, combining
-  marks. Box drawing auto-detects UTF-8 for Unicode line characters.
-- **App-in-app hosting** -- run a whole tuish app inside a region of
-  another, in one process with no forks. Either modally (the child takes
-  the keyboard until it quits) or **cooperatively**: one event loop driving
-  several live children at once, each ticking at its own negotiated rate,
-  clipped to a scrolling pane, with focus and browser-style scroll chaining.
-  `host.sh` does the bookkeeping. See [hosting.md](docs/hosting.md).
+All modules are optional unless an application uses their API. Load `compat.sh` first; load other modules after their dependencies.
 
-## Supported Shells
-
-| Shell      | Version  |
-|------------|----------|
-| bash       | 4+       |
-| zsh        | 5+       |
-| ksh93      | AJM 93u+ |
-| mksh       | R59+     |
-| busybox sh | 1.30+    |
-
-## Modules
-
-Source `compat.sh` first, then `ord.sh`, then `tui.sh`. Everything else
-is optional -- pick what you need:
-
-| Module        | Purpose                                         |
-|---------------|-------------------------------------------------|
-| `compat.sh`   | Shell normalization, portable output            |
-| `ord.sh`      | ASCII lookup tables                             |
-| `tui.sh`      | Terminal lifecycle, traps, buffering, contexts  |
-| `term.sh`     | Cursor, colors, text attributes, scroll regions |
-| `event.sh`    | Event loop, redraw scheduling                   |
-| `hid.sh`      | Keyboard/mouse event name resolution            |
-| `viewport.sh` | Fullscreen, fixed, and grow viewport modes      |
-| `canvas.sh`   | Clipped sub-region with local coordinates       |
-| `str.sh`      | String operations, Unicode display width        |
-| `buf.sh`      | Indexed line buffer                             |
-| `keybind.sh`  | Declarative event-to-action dispatch            |
-| `clip.sh`     | System clipboard (OSC 52)                       |
-| `draw.sh`     | Box drawing with styles and junctions           |
-| `hl.sh`       | Generic code highlighting (standalone)          |
-| `md.sh`       | Markdown to a record stream (standalone)        |
-| `host.sh`     | Hosting several live apps in one loop           |
-| `actor.sh`    | Actor lifecycle, FIFO mailbox, Elm/MVU updates and effects |
-| `progress.sh` | Animated progress Actor component                |
-| `slide_motion.sh` | Deterministic timeline and frame scrubbing       |
-| `table.sh`     | Interactive data table Actor                     |
-| `tree.sh`      | Expandable stable-ID tree Actor                   |
-| `split_view.sh` | Two-pane layout, focus and resize Actor            |
-| `text_input.sh` | Single-line Unicode-aware text input Actor         |
-| `theme.sh` | Semantic color tokens and named palettes            |
-| `ui.sh` | Futuristic panels, badges, sections and progress bars |
-| `cellbuf.sh` | Sparse in-memory cell buffers with per-cell styles |
-| `compositor.sh` | Z-ordered transparent layer composition |
-| `monitor.sh`  | Best-effort host/system metrics                  |
+| Module | Implemented functionality |
+|---|---|
+| `compat.sh`, `ord.sh` | Shell compatibility helpers and ordinal/character lookup |
+| `tui.sh`, `term.sh` | Terminal lifecycle, state restoration, cursor, colors and text attributes |
+| `event.sh`, `hid.sh`, `keybind.sh` | Event loop, keyboard/mouse event decoding and declarative key bindings |
+| `draw.sh`, `canvas.sh`, `viewport.sh` | Drawing primitives, clipped regions and viewport modes |
+| `str.sh`, `buf.sh` | String/Unicode display-width helpers and indexed line buffers |
+| `clip.sh` | OSC 52 clipboard output |
+| `hl.sh`, `md.sh` | Generic code highlighting and Markdown-to-record-stream conversion |
+| `host.sh` | Hosting child applications, including cooperative hosting |
+| `actor.sh` | Actor lifecycle, FIFO mailbox and Elm/MVU message/update/effect dispatch |
+| `progress.sh`, `slide_motion.sh` | Progress component and deterministic timeline/frame scrubbing |
+| `table.sh`, `tree.sh`, `split_view.sh`, `text_input.sh` | Interactive table, expandable tree, two-pane layout and single-line text input |
+| `theme.sh`, `ui.sh` | Semantic color themes and reusable terminal UI primitives |
+| `cellbuf.sh`, `compositor.sh` | Sparse cell buffers and z-ordered layer composition |
+| `monitor.sh` | Best-effort host/system metrics |
 
 ## Examples
 
-```sh
-bash examples/cooperative.sh  # One loop, two live apps: a clock + the editor
-bash examples/editor.sh       # CUA-like text editor
-bash examples/game.sh         # Emoji platformer (dirty-sprite renderer)
-bash examples/boxes.sh        # Box drawing styles and composable layouts
-bash examples/canvas_demo.sh  # Two independently scrollable clipped panels
-bash examples/debug.sh        # Live event inspector
-bash examples/agent_dashboard.sh # Live host metrics and managed agent workers
-bash examples/progress_demo.sh    # Animated progress Actor
-sh examples/actor_mvu_demo.sh      # Parent/child Elm-MVU message broker
-bash examples/slide_motion_demo.sh # Timeline and frame scrubbing
-bash examples/table_demo.sh        # Interactive data table
-bash examples/tree_demo.sh         # Expandable tree navigation
-bash examples/split_view_demo.sh    # Two-pane layout composer
-bash examples/text_input_demo.sh    # Single-line text input
-bash examples/futuristic_dashboard.sh # Futuristic design system demo
-bash examples/compositor_demo.sh    # Layered cell-buffer composition
-bash examples/width.sh        # Unicode width ACID test
-bash examples/slow_menu.sh    # Streaming output in a grow viewport
-```
+Existing runnable examples are in [`examples/`](examples/). The Actor-specific walkthroughs are collected in [`docs/examples/`](docs/examples/):
 
-Each is **dual-mode**: run it standalone, or source it from another tuish app
-and run it inside a region -- that is what `cooperative.sh` does with the
-editor, and what the website does with all of them.
+| Actor | Run |
+|---|---|
+| Core Actor runtime and MVU broker | `sh docs/examples/actor-runtime.sh` |
+| Progress | `sh docs/examples/progress.sh` |
+| SlideMotion | `sh docs/examples/slide-motion.sh` |
+| Table | `sh docs/examples/table.sh` |
+| Tree | `sh docs/examples/tree.sh` |
+| SplitView | `sh docs/examples/split-view.sh` |
+| TextInput | `sh docs/examples/text-input.sh` |
+
+The demos invoke the corresponding runnable examples from the repository root; run them from any working directory.
 
 ## Documentation
 
-- [Getting Started](docs/getting-started.md) -- examples, architecture, module system
-- [Core (tui.sh)](docs/tui.md) -- lifecycle, buffering, terminal variables
-- [Terminal Output (term.sh)](docs/term.md) -- cursor, colors, text attributes
-- [Event Loop (event.sh)](docs/event.md) -- event lifecycle, redraw scheduling
-- [HID (hid.sh)](docs/hid.md) -- complete event name reference
-- [Viewport Modes (viewport.sh)](docs/viewport.md) -- fullscreen, fixed, grow
-- [Hosting and Contexts](docs/hosting.md) -- one app inside another, cooperative multi-app loops
-- [Actor Runtime](docs/actors.md) -- Actor API, component catalog and live dashboard
-- [SlideMotion](docs/slide-motion.md) -- deterministic timeline and scrubbing
-- [Interactive Table](docs/table.md) -- data, selection, viewport and rendering
-- [Expandable Tree](docs/tree.md) -- stable IDs, hierarchy, expansion and clipped navigation
-- [SplitView](docs/split-view.md) -- two-pane layout, sizing constraints and focus
-- [TextInput](docs/text-input.md) -- single-line editing, cursor, paste and masking
-- [Design System](docs/design-system.md) -- themes and reusable visual primitives
-- [CellBuffer + Compositor](docs/cellbuf-compositor.md) -- in-memory cells and layered rendering
-- [Box Drawing (draw.sh)](docs/draw.md) -- styles, junctions, clipping
-- [String Utilities (str.sh)](docs/str.md) -- Unicode width, substrings
-- [Line Buffer (buf.sh)](docs/buf.md) -- indexed line storage
-- [Key Bindings (keybind.sh)](docs/keybind.md) -- declarative event dispatch
-- [System Clipboard (clip.sh)](docs/clip.md) -- OSC 52 copy, and how paste works
-- [Code Highlighting (hl.sh)](docs/hl.md) -- one generic lexer, token styles, fence modes
-- [Markdown (md.sh)](docs/md.md) -- the record stream, the sink, the supported subset
-- [Shell Compatibility](docs/compatibility.md) -- supported shells, limits, workarounds
+- [Getting started](docs/getting-started.md)
+- [Core terminal lifecycle](docs/tui.md)
+- [Terminal output](docs/term.md)
+- [Event loop](docs/event.md)
+- [Keyboard and mouse events](docs/hid.md)
+- [Viewport modes](docs/viewport.md)
+- [Hosting and contexts](docs/hosting.md)
+- [Actor runtime](docs/actors.md)
+- [Progress Actor](docs/progress.md)
+- [SlideMotion Actor](docs/slide-motion.md)
+- [Interactive table](docs/table.md)
+- [Expandable tree](docs/tree.md)
+- [SplitView](docs/split-view.md)
+- [TextInput](docs/text-input.md)
+- [Design system](docs/design-system.md)
+- [CellBuffer and compositor](docs/cellbuf-compositor.md)
+- [Box drawing](docs/draw.md)
+- [String utilities](docs/str.md)
+- [Line buffer](docs/buf.md)
+- [Key bindings](docs/keybind.md)
+- [System clipboard](docs/clip.md)
+- [Code highlighting](docs/hl.md)
+- [Markdown](docs/md.md)
+- [Shell compatibility](docs/compatibility.md)
+
+## Supported shells
+
+The project currently documents support for bash 4+, zsh 5+, ksh93 AJM 93u+, mksh R59+ and busybox sh 1.30+.
 
 ## License
 
