@@ -93,6 +93,7 @@ is optional -- pick what you need:
 | `table.sh`     | Interactive data table Actor                     |
 | `tree.sh`      | Expandable stable-ID tree Actor                   |
 | `split_view.sh` | Two-pane layout, focus and resize Actor            |
+| `text_input.sh` | Single-line Unicode-aware text input Actor         |
 | `theme.sh` | Semantic color tokens and named palettes            |
 | `ui.sh` | Futuristic panels, badges, sections and progress bars |
 | `monitor.sh`  | Best-effort host/system metrics                  |
@@ -112,6 +113,7 @@ bash examples/slide_motion_demo.sh # Timeline and frame scrubbing
 bash examples/table_demo.sh        # Interactive data table
 bash examples/tree_demo.sh         # Expandable tree navigation
 bash examples/split_view_demo.sh    # Two-pane layout composer
+bash examples/text_input_demo.sh    # Single-line text input
 bash examples/futuristic_dashboard.sh # Futuristic design system demo
 bash examples/width.sh        # Unicode width ACID test
 bash examples/slow_menu.sh    # Streaming output in a grow viewport
@@ -135,6 +137,7 @@ editor, and what the website does with all of them.
 - [Interactive Table](docs/table.md) -- data, selection, viewport and rendering
 - [Expandable Tree](docs/tree.md) -- stable IDs, hierarchy, expansion and clipped navigation
 - [SplitView](docs/split-view.md) -- two-pane layout, sizing constraints and focus
+- [TextInput](docs/text-input.md) -- single-line editing, cursor, paste and masking
 - [Design System](docs/design-system.md) -- themes and reusable visual primitives
 - [Box Drawing (draw.sh)](docs/draw.md) -- styles, junctions, clipping
 - [String Utilities (str.sh)](docs/str.md) -- Unicode width, substrings
