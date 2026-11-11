@@ -35,7 +35,19 @@ tuish_text_input_set name 'João'
 tuish_actor_get name value
 assert_eq "$TUISH_ACTOR_VALUE" 'João' 'UTF-8 value is preserved'
 tuish_actor_get name cursor_position
-assert_eq "$TUISH_ACTOR_VALUE" 4 'UTF-8 cursor counts codepoints rather than bytes'
+assert_eq "$TUISH_ACTOR_VALUE" 4 'UTF-8 cursor counts grapheme clusters rather than bytes'
+tuish_text_input_set name 'éx'
+tuish_actor_get name cursor_position
+assert_eq "$TUISH_ACTOR_VALUE" 2 'combining mark stays in the preceding grapheme'
+tuish_text_input_backspace name
+tuish_actor_get name value
+assert_eq "$TUISH_ACTOR_VALUE" 'é' 'backspace removes one complete grapheme'
+tuish_text_input_set name '👨‍👩‍👧‍👦'
+tuish_actor_get name cursor_position
+assert_eq "$TUISH_ACTOR_VALUE" 1 'ZWJ emoji sequence is one grapheme'
+tuish_text_input_backspace name
+tuish_actor_get name value
+assert_eq "$TUISH_ACTOR_VALUE" '' 'backspace removes complete ZWJ emoji sequence'
 tuish_text_input_create secret 'Password' 0 '*'
 tuish_text_input_set secret 'abc'
 _rendered="$(tuish_text_input_render secret)"
