@@ -4,6 +4,7 @@ set -euf
 TESTS_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 . "$TESTS_DIR/lib/test_framework.sh"
 . "$TESTS_DIR/../src/compat.sh"
+. "$TESTS_DIR/../src/ord.sh"
 . "$TESTS_DIR/../src/tui.sh"
 . "$TESTS_DIR/../src/cellbuf.sh"
 . "$TESTS_DIR/../src/term.sh"
