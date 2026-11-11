@@ -248,3 +248,141 @@ tuish_actor_action () {
 		*) return 2;;
 	esac
 }
+
+
+# Elm/MVU broker. One process-local FIFO is shared by all Actors so messages
+# retain a total, deterministic order. A callback may enqueue more work, but
+# nested dispatch is suppressed; the outer drain owns the queue.
+_tuish_actor_mailbox=''
+_tuish_actor_effects=''
+_tuish_actor_sequence=0
+_tuish_actor_dispatching=0
+TUISH_ACTOR_DISPATCH_LIMIT=${TUISH_ACTOR_DISPATCH_LIMIT:-256}
+TUISH_ACTOR_SEQUENCE=0
+TUISH_ACTOR_MESSAGE=''
+
+_tuish_actor_enqueue () {
+	local _id=$1 _message=$2
+	_tuish_actor_valid_name "$_id" || return 2
+	_tuish_actor_valid_value "$_message" || return 2
+	_tuish_actor_exists "$_id" || return 1
+	tuish_actor_get "$_id" lifecycle || return 1
+	test "$TUISH_ACTOR_VALUE" != destroyed || return 1
+	_tuish_actor_sequence=$((_tuish_actor_sequence + 1))
+	_tuish_actor_mailbox="${_tuish_actor_mailbox}${_tuish_actor_sequence}|$_id|$_message
+"
+}
+
+tuish_actor_post () {
+	_tuish_actor_enqueue "$1" "${2-}"
+}
+
+tuish_actor_send () {
+	_tuish_actor_enqueue "$1" "${2-}" || return
+	tuish_actor_dispatch
+}
+
+# Effects are commands/data, not shell source. The registered on_effect
+# function decides how to interpret them; the pure update callback never does I/O.
+tuish_actor_cmd () {
+	local _id=$1 _effect=${2-}
+	_tuish_actor_valid_value "$_effect" || return 2
+	_tuish_actor_exists "$_id" || return 1
+	_tuish_actor_effects="${_tuish_actor_effects}$_id|$_effect
+"
+}
+
+_tuish_actor_run_effects () {
+	local _line _id _effect _remaining=''
+	while IFS= read -r _line
+	do
+		test -n "$_line" || continue
+		_id=${_line%%|*}; _effect=${_line#*|}
+		if _tuish_actor_exists "$_id"; then
+			_tuish_actor_get "$_id" lifecycle || :
+			if test "$TUISH_ACTOR_VALUE" != destroyed; then
+				_tuish_actor_emit "$_id" effect "$_effect" || return
+			fi
+		fi
+	done <<EOF
+$_tuish_actor_effects
+EOF
+	_tuish_actor_effects=$_remaining
+}
+
+tuish_actor_dispatch () {
+	local _line _sequence _id _message _processed=0 _status=0
+	test "$_tuish_actor_dispatching" -eq 0 || return 0
+	case "$TUISH_ACTOR_DISPATCH_LIMIT" in ''|*[!0-9]*|0) return 2;; esac
+	_tuish_actor_dispatching=1
+	while test -n "$_tuish_actor_mailbox" && test "$_processed" -lt "$TUISH_ACTOR_DISPATCH_LIMIT"
+	do
+		_line=${_tuish_actor_mailbox%%'
+'*}
+		if test "$_line" = "$_tuish_actor_mailbox"; then _tuish_actor_mailbox=''; else _tuish_actor_mailbox=${_tuish_actor_mailbox#*'
+'}; fi
+		_sequence=${_line%%|*}; _line=${_line#*|}
+		_id=${_line%%|*}; _message=${_line#*|}
+		TUISH_ACTOR_SEQUENCE=$_sequence
+		TUISH_ACTOR_MESSAGE=$_message
+		_processed=$((_processed + 1))
+		if _tuish_actor_exists "$_id"; then
+			tuish_actor_get "$_id" lifecycle || :
+			if test "$TUISH_ACTOR_VALUE" != destroyed; then
+				_tuish_actor_emit "$_id" message "$_message" || { _status=$?; break; }
+				_tuish_actor_emit "$_id" update "$_message" || { _status=$?; break; }
+			fi
+		fi
+		tuish_actor_dispatch_effects || { _status=$?; break; }
+	done
+	_tuish_actor_dispatching=0
+	test "$_status" -eq 0 || return "$_status"
+	if test -n "$_tuish_actor_mailbox"; then return 75; fi
+	return 0
+}
+
+tuish_actor_dispatch_effects () { _tuish_actor_run_effects; }
+
+tuish_actor_send_child () {
+	local _child=$1 _message=${2-} _parent
+	tuish_actor_get "$_child" parent || return
+	_parent=$TUISH_ACTOR_VALUE
+	test -n "$_parent" || return 1
+	_tuish_actor_valid_value "$_message" || return 2
+	_tuish_actor_enqueue "$_parent" "child:$_child:$_message" || return
+	tuish_actor_dispatch
+}
+
+# View is explicitly separate from message/update processing. The renderer can
+# be called by the existing event loop or host after state has settled.
+tuish_actor_render () {
+	local _id=$1
+	_tuish_actor_exists "$_id" || return 1
+	_tuish_actor_emit "$_id" render "${2-}"
+}
+
+tuish_actor_update () {
+	local _id=$1 _message=${2-}
+	_tuish_actor_exists "$_id" || return 1
+	_tuish_actor_emit "$_id" update "$_message"
+}
+
+# Register a complete Elm-style program using function names only:
+# tuish_actor_program ID MESSAGE UPDATE VIEW EFFECT [CHILD_MESSAGE] [INIT] [SHUTDOWN]
+tuish_actor_program () {
+	local _id=$1 _message=$2 _update=$3 _view=$4 _effect=$5
+	local _child=${6:-} _init=${7:-} _shutdown=${8:-}
+	_tuish_actor_on_optional "$_id" message "$_message" || return
+	_tuish_actor_on_optional "$_id" update "$_update" || return
+	_tuish_actor_on_optional "$_id" render "$_view" || return
+	_tuish_actor_on_optional "$_id" effect "$_effect" || return
+	test -z "$_child" || _tuish_actor_on_optional "$_id" child_message "$_child" || return
+	test -z "$_init" || _tuish_actor_on_optional "$_id" init "$_init" || return
+	test -z "$_shutdown" || _tuish_actor_on_optional "$_id" shutdown "$_shutdown"
+}
+
+_tuish_actor_on_optional () {
+	local _id=$1 _event=$2 _fn=$3
+	test -n "$_fn" || return 0
+	tuish_actor_on "$_id" "$_event" "$_fn"
+}
