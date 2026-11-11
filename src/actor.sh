@@ -229,7 +229,8 @@ tuish_actor_action () {
 				*) return 2;;
 			esac;;
 		split-view) test "$_action" = ratio || return 2; command -v tuish_split_view_set_ratio >/dev/null 2>&1 || return 2; tuish_split_view_set_ratio "$_id" "$_value";;
-		text-input|text-area|code-editor) case "$_action" in input|replace) tuish_actor_set "$_id" value "$_value";; *) return 2;; esac;;
+		text-input) case "$_action" in input|replace) command -v tuish_text_input_set >/dev/null 2>&1 || return 2; tuish_text_input_set "$_id" "$_value";; insert) command -v tuish_text_input_insert >/dev/null 2>&1 || return 2; tuish_text_input_insert "$_id" "$_value";; backspace) command -v tuish_text_input_backspace >/dev/null 2>&1 || return 2; tuish_text_input_backspace "$_id";; delete) command -v tuish_text_input_delete >/dev/null 2>&1 || return 2; tuish_text_input_delete "$_id";; *) return 2;; esac;;
+		text-area|code-editor) case "$_action" in input|replace) tuish_actor_set "$_id" value "$_value";; *) return 2;; esac;;
 		viewport) test "$_action" = scroll || return 2; tuish_actor_step "$_id" scroll "$_value";;
 		spinner) test "$_action" = tick || return 2; tuish_actor_get "$_id" frame_index || :; _value=$(( ${TUISH_ACTOR_VALUE:-0} + 1 )); tuish_actor_set "$_id" frame_index "$_value";;
 		mouse-adapter) test "$_action" = position || return 2; tuish_actor_set "$_id" pointer "$_value";;
