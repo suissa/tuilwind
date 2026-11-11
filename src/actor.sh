@@ -390,7 +390,7 @@ tuish_actor_program () {
 	_tuish_actor_on_optional "$_id" render "$_view" || return
 	_tuish_actor_on_optional "$_id" effect "$_effect" || return
 	test -z "$_child" || _tuish_actor_on_optional "$_id" child_message "$_child" || return
-	test -z "$_init" || _tuish_actor_on_optional "$_id" init "$_init" || return
+	test -z "$_init" || { _tuish_actor_on_optional "$_id" init "$_init" || return; _tuish_actor_emit "$_id" init ''; }
 	test -z "$_shutdown" || _tuish_actor_on_optional "$_id" shutdown "$_shutdown"
 }
 
