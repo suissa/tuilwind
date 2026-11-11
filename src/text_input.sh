@@ -112,7 +112,7 @@ tuish_text_input_set () {
   _tuish_actor_emit "$_id" data_change "$_text"
 }
 tuish_text_input_insert () {
-  local _id=$1 _insert=${2:-} _value _cursor _max _len _left _right _next _insert_len
+  local _id=$1 _insert=${2:-} _value _cursor _max _len _left _right _next _insert_len _i
   _tuish_input_clean "$_insert"; _insert=$TUISH_TEXT_INPUT_CLEAN
   tuish_actor_get "$_id" value || return; _value=$TUISH_ACTOR_VALUE
   tuish_actor_get "$_id" cursor_position || return; _cursor=$TUISH_ACTOR_VALUE
