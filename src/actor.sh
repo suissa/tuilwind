@@ -293,25 +293,31 @@ tuish_actor_cmd () {
 }
 
 _tuish_actor_run_effects () {
-	local _line _id _effect _remaining=''
-	while IFS= read -r _line
+	local _line _id _effect _batch _round=0
+	while test -n "$_tuish_actor_effects" && test "$_round" -lt "$TUISH_ACTOR_DISPATCH_LIMIT"
 	do
-		test -n "$_line" || continue
-		_id=${_line%%|*}; _effect=${_line#*|}
-		if _tuish_actor_exists "$_id"; then
-			_tuish_actor_get "$_id" lifecycle || :
-			if test "$TUISH_ACTOR_VALUE" != destroyed; then
-				_tuish_actor_emit "$_id" effect "$_effect" || return
+		_batch=$_tuish_actor_effects
+		_tuish_actor_effects=''
+		while IFS= read -r _line
+		do
+			test -n "$_line" || continue
+			_id=${_line%%|*}; _effect=${_line#*|}
+			if _tuish_actor_exists "$_id"; then
+				tuish_actor_get "$_id" lifecycle || :
+				if test "$TUISH_ACTOR_VALUE" != destroyed; then
+					_tuish_actor_emit "$_id" effect "$_effect" || return
+				fi
 			fi
-		fi
-	done <<EOF
-$_tuish_actor_effects
+		done <<EOF
+$_batch
 EOF
-	_tuish_actor_effects=$_remaining
+		_round=$((_round + 1))
+	done
+	test -z "$_tuish_actor_effects" || return 75
 }
 
 tuish_actor_dispatch () {
-	local _line _sequence _id _message _processed=0 _status=0
+	local _line _sequence _id _message _child _payload _processed=0 _status=0
 	test "$_tuish_actor_dispatching" -eq 0 || return 0
 	case "$TUISH_ACTOR_DISPATCH_LIMIT" in ''|*[!0-9]*|0) return 2;; esac
 	_tuish_actor_dispatching=1
@@ -329,8 +335,15 @@ tuish_actor_dispatch () {
 		if _tuish_actor_exists "$_id"; then
 			tuish_actor_get "$_id" lifecycle || :
 			if test "$TUISH_ACTOR_VALUE" != destroyed; then
-				_tuish_actor_emit "$_id" message "$_message" || { _status=$?; break; }
-				_tuish_actor_emit "$_id" update "$_message" || { _status=$?; break; }
+				case "$_message" in
+					child:*)
+						_line=${_message#child:}
+						_child=${_line%%:*}; _payload=${_line#*:}
+						_tuish_actor_emit "$_id" child_message "$_child|$_payload" || { _status=$?; break; } ;;
+					*)
+						_tuish_actor_emit "$_id" message "$_message" || { _status=$?; break; }
+						_tuish_actor_emit "$_id" update "$_message" || { _status=$?; break; } ;;
+				esac
 			fi
 		fi
 		tuish_actor_dispatch_effects || { _status=$?; break; }
