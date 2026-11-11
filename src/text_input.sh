@@ -37,7 +37,6 @@ tuish_text_input_set () {
   local _id=$1 _text=${2:-} _max _len
   _tuish_input_clean "$_text"; _text=$TUISH_TEXT_INPUT_CLEAN
   tuish_actor_get "$_id" max_length || return; _max=$TUISH_ACTOR_VALUE
-  _tuish_input_len; _len=$TUISH_TEXT_INPUT_LENGTH
   # Count Unicode codepoints (not bytes); reject rather than silently truncate.
   local _tuish_input_text=$_text
   _tuish_input_len; _len=$TUISH_TEXT_INPUT_LENGTH
@@ -48,7 +47,7 @@ tuish_text_input_set () {
   _tuish_actor_emit "$_id" data_change "$_text"
 }
 tuish_text_input_insert () {
-  local _id=$1 _insert=${2:-} _value _cursor _max _len _left _right _next
+  local _id=$1 _insert=${2:-} _value _cursor _max _len _left _right _next _insert_len
   _tuish_input_clean "$_insert"; _insert=$TUISH_TEXT_INPUT_CLEAN
   tuish_actor_get "$_id" value || return; _value=$TUISH_ACTOR_VALUE
   tuish_actor_get "$_id" cursor_position || return; _cursor=$TUISH_ACTOR_VALUE
@@ -56,13 +55,15 @@ tuish_text_input_insert () {
   local _tuish_input_text=$_value
   _tuish_input_len; _len=$TUISH_TEXT_INPUT_LENGTH
   local _tuish_input_text=$_insert
-  _tuish_input_len; _next=$TUISH_TEXT_INPUT_LENGTH
-  test "$_max" -eq 0 || test $((_len + _next)) -le "$_max" || return 2
+  _tuish_input_len; _insert_len=$TUISH_TEXT_INPUT_LENGTH
+  test "$_max" -eq 0 || test $((_len + _insert_len)) -le "$_max" || return 2
   tuish_str_left _value "$_cursor"; _left=$TUISH_SLEFT
   tuish_str_right _value "$_cursor"; _right=$TUISH_SRIGHT
   _next="${_left}${_insert}${_right}"
   tuish_actor_set "$_id" value "$_next" || return
-  tuish_actor_set "$_id" cursor_position "$((_cursor + $(tuish_str_len _insert; printf '%s' "$TUISH_SLEN")))" || return
+  local _tuish_input_text=$_insert
+  _tuish_input_len
+  tuish_actor_set "$_id" cursor_position "$((_cursor + TUISH_TEXT_INPUT_LENGTH))" || return
   _tuish_actor_emit "$_id" data_change "$_next"
 }
 tuish_text_input_move () {
