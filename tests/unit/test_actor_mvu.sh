@@ -22,7 +22,13 @@ _mvu_shutdown () { _MVU_TRACE="${_MVU_TRACE}shutdown:$1;"; }
 
 printf 'Unit tests: Elm/MVU Actor mailbox broker\n'
 tuish_actor_create root list
+tuish_actor_get root actor_id
+assert_eq "$TUISH_ACTOR_VALUE" root 'Actor stores its stable ID'
+tuish_actor_get root parent_id
+assert_eq "$TUISH_ACTOR_VALUE" '' 'root has no parent ID'
 tuish_actor_create leaf list root
+tuish_actor_get leaf parent_id
+assert_eq "$TUISH_ACTOR_VALUE" root 'child stores its parent ID'
 tuish_actor_program root _mvu_message _mvu_update _mvu_view _mvu_effect _mvu_child _mvu_init _mvu_shutdown
 tuish_actor_program leaf _mvu_message _mvu_update _mvu_view _mvu_effect
 assert_contains "$_MVU_TRACE" 'init:root;' 'program registers init lifecycle callback'
@@ -37,7 +43,7 @@ assert_eq "$_MVU_VIEW" 'root:dashboard' 'view callback is invoked separately fro
 
 _MVU_TRACE=''
 tuish_actor_send_child leaf selected
-assert_eq "$_MVU_TRACE" 'child:leaf|selected;' 'child messages route to the parent child-message handler'
+assert_eq "$_MVU_TRACE" 'child:leaf|selected;update:child:leaf|selected;effect:redraw;' 'child messages route to parent and update its state'
 
 tuish_actor_post root deferred
 assert_eq "$TUISH_ACTOR_SEQUENCE" 4 'posting does not synchronously dispatch'
