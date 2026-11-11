@@ -44,6 +44,20 @@ assert_contains "$_draw_log" 'R1,1,AB' "changed glyph is redrawn"
 assert_contains "$_draw_opts" 'width=3' "shorter replacement clears the old text tail"
 assert_contains "$_draw_opts" 'fg=203' "style changes are detected and forwarded"
 
+# Attribute-only changes must invalidate a cell even when its glyph and colors stay the same.
+tuish_cellbuf_set current 1 1 AB fg=203 attrs=1
+_draw_log='' _draw_opts=''
+tuish_diff_render previous current
+assert_eq "$TUISH_DIFF_CHANGED_CELLS" 1 "attribute-only change redraws one cell"
+assert_contains "$_draw_opts" 'attrs=1' "SGR attributes are forwarded by the diff renderer"
+
+# Background-only changes must also invalidate the cell.
+tuish_cellbuf_set current 1 1 AB fg=203 bg=17 attrs=1
+_draw_log='' _draw_opts=''
+tuish_diff_render previous current
+assert_eq "$TUISH_DIFF_CHANGED_CELLS" 1 "background-only change redraws one cell"
+assert_contains "$_draw_opts" 'bg=17' "background changes are forwarded by the diff renderer"
+
 # Removing a cell clears its previous display span.
 tuish_cellbuf_clear current
 tuish_cellbuf_set current 1 1 AB fg=203
