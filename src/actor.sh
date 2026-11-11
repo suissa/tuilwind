@@ -108,6 +108,16 @@ tuish_actor_send () {
 	_tuish_actor_emit "$_id" message "$_message"
 }
 
+# Dispatch a named Actor event with its payload. Keep tuish_actor_send as the
+# message-channel API; component lifecycle/state events use this dispatcher.
+tuish_actor_emit () {
+	local _id=$1 _event=$2 _payload=${3:-}
+	case " $TUISH_ACTORS " in *" $_id "*) ;; *) return 1;; esac
+	tuish_actor_get "$_id" lifecycle || return
+	test "$TUISH_ACTOR_VALUE" = destroyed && return 1
+	_tuish_actor_emit "$_id" "$_event" "$_payload"
+}
+
 tuish_actor_start () {
 	tuish_actor_get "$1" lifecycle || return
 	test "$TUISH_ACTOR_VALUE" = destroyed && return 1

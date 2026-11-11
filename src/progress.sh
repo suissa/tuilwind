@@ -1,8 +1,9 @@
 #!/bin/sh
 
 # SPDX-License-Identifier: ISC
-# src/progress.sh - animated, portable progress Actor.
-# Source after actor.sh. Rendering is plain text unless a numeric ANSI color is set.
+# src/progress.sh - portable, event-driven animated progress Actor.
+# Source after actor.sh. The caller owns the clock/event loop; this module never
+# starts a timer, subprocess, or background job.
 
 if test -n "${_tuish_progress_loaded:-}"; then return 0; fi
 _tuish_progress_loaded=1
@@ -14,7 +15,8 @@ tuish_progress_create () {
 	tuish_actor_set "$_id" width "$_width" || return
 	tuish_actor_set "$_id" label "$_label" || return
 	tuish_actor_set "$_id" percent 0 || return
-	tuish_actor_set "$_id" animation_state 0
+	tuish_actor_set "$_id" animation_state 0 || return
+	tuish_actor_set "$_id" animation_active 0
 }
 
 tuish_progress_set () {
@@ -24,32 +26,52 @@ tuish_progress_set () {
 	test "$_percent" -lt 0 && _percent=0
 	test "$_percent" -gt 100 && _percent=100
 	tuish_actor_action "$_id" set "$_percent" || return
-	tuish_actor_send "$_id" progress_change "$_percent"
+	tuish_actor_emit "$_id" progress_change "$_percent"
 }
 
 tuish_progress_resize () {
 	local _id=$1 _width=$2
 	_tuish_actor_is_uint "$_width" && test "$_width" -ge 1 && test "$_width" -le 200 || return 2
-	tuish_actor_set "$_id" width "$_width"
-	tuish_actor_send "$_id" resize "$_width"
+	tuish_actor_set "$_id" width "$_width" || return
+	tuish_actor_emit "$_id" resize "$_width"
+}
+
+# Start/stop only change Actor lifecycle. The application/event loop decides
+# when to call tick; this keeps animation deterministic and shell-portable.
+tuish_progress_start () {
+	local _id=$1
+	tuish_actor_get "$_id" animation_active || return
+	test "$TUISH_ACTOR_VALUE" = 1 && return 0
+	tuish_actor_set "$_id" animation_active 1 || return
+	tuish_actor_start "$_id"
+}
+
+tuish_progress_stop () {
+	local _id=$1
+	tuish_actor_get "$_id" animation_active || return
+	test "$TUISH_ACTOR_VALUE" = 0 && return 0
+	tuish_actor_set "$_id" animation_active 0 || return
+	tuish_actor_stop "$_id"
 }
 
 tuish_progress_tick () {
-	local _id=$1 _width _frame
+	local _id=$1 _width _frame _active
 	tuish_actor_get "$_id" width || return
 	_width=$TUISH_ACTOR_VALUE
 	_tuish_actor_is_uint "$_width" && test "$_width" -gt 0 || return 2
+	tuish_actor_get "$_id" animation_active || :; _active=${TUISH_ACTOR_VALUE:-0}
+	test "$_active" = 1 || return 0
 	tuish_actor_get "$_id" animation_state || :
 	_frame=${TUISH_ACTOR_VALUE:-0}
 	_tuish_actor_is_uint "$_frame" || return 2
 	_frame=$(( (_frame + 1) % _width ))
-	tuish_actor_set "$_id" animation_state "$_frame"
-	tuish_actor_send "$_id" tick "$_frame"
+	tuish_actor_set "$_id" animation_state "$_frame" || return
+	tuish_actor_emit "$_id" tick "$_frame"
 }
 
 tuish_progress_render () {
 	local _id=$1 _label _width _percent _filled _empty _i _color='' _frame=0 _marker=-1
-	tuish_actor_send "$_id" render || return
+	tuish_actor_emit "$_id" render || return
 	tuish_actor_get "$_id" label || :; _label=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" width || return; _width=$TUISH_ACTOR_VALUE
 	tuish_actor_get "$_id" percent || :; _percent=${TUISH_ACTOR_VALUE:-0}
